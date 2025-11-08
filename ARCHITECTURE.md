@@ -1,4 +1,4 @@
-### Documento de Arquitetura — Networking Manager
+# Documento de Arquitetura — Networking Manager
 
 - Arquitetura Monorepo com Frontend (Next.js) -> Backend (Node.js + Express) -> Banco NoSQL (MongoDB/Mongoose).
 - O foco é o Fluxo de Admissão + funcionalidades de gestão, comunicação e geração de negócios.
@@ -15,7 +15,7 @@ graph TD
   C -->|Testes Jest Supertest| E[JestRunner]
 ```
 
-Fluxo:
+### Fluxo:
 1. O usuário acessa o frontend via navegador.
 2. O frontend consome o backend usando a API REST.
 3. O backend manipula os dados e os persiste no MongoDB.
@@ -28,7 +28,7 @@ Fluxo:
 - Bons drivers em Node.js; ótima compatibilidade com documentos que representam objetos do domínio (intents, invites, members, referrals).
 - Facilidade para agregar relatórios usados em dashboards/relatórios.
 
-# Coleções principais
+### Coleções principais
 intents — intenções de paticipação (porta de entrada)
 ```json
 {
@@ -44,6 +44,7 @@ intents — intenções de paticipação (porta de entrada)
   "token": "uuid-gerado-para-cadastro"
 }
 ```
+
 invites — convites gerados ao aprovar uma intent
 ```json
 {
@@ -55,6 +56,7 @@ invites — convites gerados ao aprovar uma intent
   "expiresAt": "2025-12-01T00:00:00Z"
 }
 ```
+
 members — cadastros completos (membros ativos)
 ```json
 {
@@ -79,12 +81,13 @@ members — cadastros completos (membros ativos)
   }
 }
 ```
+
 referrals — indicações / referências de negócio
 ```json
 {
   "_id": "ObjectId",
-  "fromMember": "ObjectId",
-  "toMember": "ObjectId",
+  "fromMemberId": "ObjectId",
+  "toMemberId": "ObjectId",
   "clientName": "Carlos Souza",
   "businessType": "Consultoria Empresarial",
   "description": "Indicação para análise de investimento",
@@ -93,6 +96,7 @@ referrals — indicações / referências de negócio
   "updatedAt": "2025-11-07T10:00:00Z"
 }
 ```
+
 meetings — reuniões 1:1 e eventos
 ```json
 {
@@ -106,6 +110,7 @@ meetings — reuniões 1:1 e eventos
   ]
 }
 ```
+
 announcements — avisos e comunicados
 ```json
 {
@@ -117,6 +122,7 @@ announcements — avisos e comunicados
   "visibleTo": ["members", "admins"]
 }
 ```
+
 payments — financeiro / mensalidades
 ```json
 {
@@ -130,3 +136,7 @@ payments — financeiro / mensalidades
   "reference": "mensalidade-2025-11"
 }
 ```
+
+### Relacionamentos (NoSQL style)
+- invites.intentId -> referência a intents._id (populate Mongoose).
+- members referenciados em referrals.fromMemberId, referrals.toMemberId, meetings.participants, payments.memberId.
