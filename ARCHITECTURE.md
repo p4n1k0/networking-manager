@@ -19,17 +19,15 @@ graph TD
 1. O usuário acessa o frontend via navegador.
 2. O frontend consome o backend usando a API REST.
 3. O backend manipula os dados e os persiste no MongoDB.
-4. Os testes garantes a integridade e confiabilidade.
+4. Os testes garantem a integridade e confiabilidade.
 
 ---
 
 ## Modelo de Dados (MongoDB — NoSQL)
-- Modelo flexível (schemas variáveis) para evoluir rápido durante o protótipo/teste técnico.
-- Bons drivers em Node.js; ótima compatibilidade com documentos que representam objetos do domínio (intents, invites, members, referrals).
-- Facilidade para agregar relatórios usados em dashboards/relatórios.
 
 ### Coleções principais
-intents — intenções de paticipação (porta de entrada)
+
+#### intents — intenções de participação
 ```json
 {
   "_id": "ObjectId",
@@ -40,12 +38,12 @@ intents — intenções de paticipação (porta de entrada)
   "message": "Tenho interesse em participar do grupo",
   "status": "pending",
   "createdAt": "2025-11-07T18:00:00Z",
-  "approvedBy": "ObjectId", 
+  "approvedBy": "ObjectId",
   "token": "uuid-gerado-para-cadastro"
 }
 ```
 
-invites — convites gerados ao aprovar uma intent
+#### invites — convites gerados ao aprovar uma intent
 ```json
 {
   "_id": "ObjectId",
@@ -57,7 +55,7 @@ invites — convites gerados ao aprovar uma intent
 }
 ```
 
-members — cadastros completos (membros ativos)
+#### members — cadastros completos (membros ativos)
 ```json
 {
   "_id": "ObjectId",
@@ -82,7 +80,7 @@ members — cadastros completos (membros ativos)
 }
 ```
 
-referrals — indicações / referências de negócio
+#### referrals — indicações / referências de negócio
 ```json
 {
   "_id": "ObjectId",
@@ -97,7 +95,7 @@ referrals — indicações / referências de negócio
 }
 ```
 
-meetings — reuniões 1:1 e eventos
+#### meetings — reuniões 1:1 e eventos
 ```json
 {
   "_id": "ObjectId",
@@ -111,7 +109,7 @@ meetings — reuniões 1:1 e eventos
 }
 ```
 
-announcements — avisos e comunicados
+#### announcements — avisos e comunicados
 ```json
 {
   "_id": "ObjectId",
@@ -123,7 +121,7 @@ announcements — avisos e comunicados
 }
 ```
 
-payments — financeiro / mensalidades
+#### payments — financeiro / mensalidades
 ```json
 {
   "_id": "ObjectId",
@@ -137,41 +135,163 @@ payments — financeiro / mensalidades
 }
 ```
 
-### Relacionamentos (NoSQL style)
-- invites.intentId -> referência a intents._id (populate Mongoose).
-- members referenciados em referrals.fromMemberId, referrals.toMemberId, meetings.participants, payments.memberId.
-
 ---
 
-## Estrutura de componentes (Frontend — Next.js)
-Objetivo: componetização atômica e modular, fácil teste e reutilização.
+## Estrutura de Componentes (Frontend — Next.js)
 
 ```bash
 frontend/
 └── src/
-    ├── app/                # (App Router) rotas/pages se for App Router OR pages/ se Pages Router
+    ├── app/
     ├── components/
-    │   ├── ui/             # componentes atômicos: Button, Input, Card, Modal, Avatar
-    │   ├── layouts/        # wrappers: MainLayout, AdminLayout
-    │   ├── modules/        # features de alto nível (FormIntent, AdminIntentsList, CadastroForm, ReferralsModule)
-    │   ├── hooks/          # useAuth, useFetch, useForm, useToast
-    │   └── providers/      # AdminProvider (token), MemberProvider (auth)
-    ├── services/           # api client (axios), adapters e business services (intentsService.js)
-    ├── styles/             # globals, tokens
-    └── utils/              # validators, formatters
+    │   ├── ui/
+    │   ├── layouts/
+    │   ├── modules/
+    │   ├── hooks/
+    │   └── providers/
+    ├── services/
+    ├── styles/
+    └── utils/
 ```
 
-### Padrões e responsabilidades
-- ui/: componentes puros, sem lógica de negócio; aceitam props e callbacks.
-- modules/: combinam UI e serviços → contêm lógica específica de páginas/flows.
-- layouts/: controlam cabeçalho, navegação, footers, e zonas de conteúdo.
-- providers/: Context API para estado global: AdminContext (admin token), AuthContext (se implementar login), QueryClientProvider (react-query).
-- hooks/: encapsulam reuso de lógica (ex: useInviteValidation(token), useIntents({page})).
-- services/api.js: instancia axios com baseURL; interceptors para auth header, tratamento de erros.
-
-### Estado global
-- Admin token: store simples via AdminContext (variável de ambiente para dev; localStorage para persistência).
-- Dados de sessão de membro: AuthContext com JWT quando implementar login.
-- Caches/async: favor react-query para fetch/caching e invalidações (intents list, referrals, members).
+### Padrões
+- **ui/**: componentes visuais reutilizáveis.
+- **modules/**: lógica de features (Intents, Cadastro, Referrals).
+- **layouts/**: estrutura de página.
+- **providers/**: Context API (admin, auth).
+- **hooks/**: lógica compartilhada.
+- **services/**: Axios e adapters para API REST.
 
 ---
+
+## Definição de API — Endpoints Principais (REST)
+
+### 1️⃣ Intents — Cadastro de intenção de participação
+
+**POST /api/v1/intents**
+```json
+{
+  "name": "João Pereira",
+  "email": "joao.pereira@mail.com",
+  "phone": "+55 21 98888-7777",
+  "business": "Consultoria Financeira",
+  "message": "Tenho interesse em participar do grupo"
+}
+```
+
+**Response:**
+```json
+{
+  "id": "64b8efc5f47d2a001f9a4412",
+  "status": "pending",
+  "token": "dfadf8b2-3b12-48a1-aef1-8aa981b3d56d",
+  "createdAt": "2025-11-07T18:00:00Z"
+}
+```
+
+---
+
+**GET /api/v1/intents**
+```json
+{
+  "page": 1,
+  "total": 32,
+  "items": [
+    {
+      "id": "64b8efc5f47d2a001f9a4412",
+      "name": "João Pereira",
+      "status": "pending",
+      "createdAt": "2025-11-07T18:00:00Z"
+    }
+  ]
+}
+```
+
+---
+
+### 2️⃣ Invites — Convites gerados ao aprovar uma intenção
+
+**POST /api/v1/invites/:intentId/approve**
+```json
+{
+  "inviteId": "65b8ffb2a3c1a90010a4ee22",
+  "intentionId": "64b8efc5f47d2a001f9a4412",
+  "token": "d89ad1c8-4567-41e9-8c5e-0987654321ab",
+  "status": "valid",
+  "expiresAt": "2025-12-01T00:00:00Z"
+}
+```
+
+**GET /api/v1/invites/:token/validate**
+```json
+{
+  "valid": true,
+  "intentionEmail": "joao.pereira@mail.com",
+  "expiresAt": "2025-12-01T00:00:00Z"
+}
+```
+
+---
+
+### 3️⃣ Members — Cadastro e gestão de membros
+
+**POST /api/v1/members**
+```json
+{
+  "token": "d89ad1c8-4567-41e9-8c5e-0987654321ab",
+  "name": "Maria Silva",
+  "email": "maria.silva@example.com",
+  "phone": "+55 11 99999-8888",
+  "business": "Marketing Digital",
+  "company": "Agência XYZ",
+  "position": "CEO",
+  "linkedin": "https://linkedin.com/in/mariasilva"
+}
+```
+
+**Response:**
+```json
+{
+  "memberId": "65c901a2f4f201c1b9c8d333",
+  "status": "active",
+  "joinedAt": "2025-11-08T10:00:00Z"
+}
+```
+
+---
+
+### 4️⃣ Referrals — Indicações
+
+**POST /api/v1/referrals**
+```json
+{
+  "fromMemberId": "65c901a2f4f201c1b9c8d333",
+  "toMemberId": "65c901a2f4f201c1b9c8d334",
+  "clientName": "Carlos Souza",
+  "businessType": "Consultoria Empresarial",
+  "description": "Indicação para análise de investimento"
+}
+```
+
+**Response:**
+```json
+{
+  "referralId": "65c9aa4c334b0a1a81bc0aa2",
+  "status": "in_progress",
+  "createdAt": "2025-11-06T14:00:00Z"
+}
+```
+
+---
+
+### 5️⃣ Healthcheck
+
+**GET /api/v1/health**
+```json
+{
+  "status": "ok",
+  "db": "connected",
+  "uptime": "13240s",
+  "version": "1.0.0"
+}
+```
