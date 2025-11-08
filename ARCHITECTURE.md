@@ -32,98 +32,100 @@ Fluxo:
 intents — intenções de paticipação (porta de entrada)
 ```json
 {
-  "_id": ObjectId,
-  "name": "Maria Silva",
-  "email": "maria@mail.com",
-  "phone": "+5511999",
-  "business": "Marketing",
-  "message": "Quero participar do grupo",
-  "status": "pending", // pending | approved | rejected
-  "admin_note": "observação",
-  "createdAt": Date,
-  "updatedAt": Date
+  "_id": "ObjectId",
+  "name": "João Pereira",
+  "email": "joao.pereira@mail.com",
+  "phone": "+55 21 98888-7777",
+  "business": "Consultoria Financeira",
+  "message": "Tenho interesse em participar do grupo",
+  "status": "pending",
+  "createdAt": "2025-11-07T18:00:00Z",
+  "approvedBy": "ObjectId", 
+  "token": "uuid-gerado-para-cadastro"
 }
 
-
 invites — convites gerados ao aprovar uma intent
-
 ```json
 {
-  "_id": ObjectId,
-  "intentId": ObjectId,        // reference -> intents._id
-  "token": "uuid-or-random",   // usado para validação do link
-  "expiresAt": Date,
-  "used": false,
-  "createdAt": Date
+  "_id": "ObjectId",
+  "token": "d89ad1c8-4567-41e9-8c5e-0987654321ab",
+  "intentionId": "ObjectId",
+  "email": "joao.pereira@mail.com",
+  "status": "valid",
+  "expiresAt": "2025-12-01T00:00:00Z"
 }
 
 members — cadastros completos (membros ativos)
 ```json
 {
-  "_id": ObjectId,
+  "_id": "ObjectId",
   "name": "Maria Silva",
-  "email": "maria@mail.com",
-  "phone": "+5511999",
-  "company": "Agência X",
-  "position": "CEO",
-  "bio": "...",
-  "isActive": true,
-  "joinedAt": Date,
-  "meta": { /* campos livres */ }
+  "email": "maria.silva@example.com",
+  "phone": "+55 11 99999-8888",
+  "business": "Marketing Digital",
+  "role": "member",
+  "status": "active",
+  "joinedAt": "2025-11-08T10:00:00Z",
+  "profile": {
+    "company": "Agência XYZ",
+    "position": "CEO",
+    "linkedin": "https://linkedin.com/in/mariasilva"
+  },
+  "stats": {
+    "referralsSent": 5,
+    "referralsReceived": 3,
+    "thanksGiven": 2,
+    "thanksReceived": 1
+  }
 }
 
 referrals — indicações / referências de negócio
 ```json
 {
-  "_id": ObjectId,
-  "fromMemberId": ObjectId,   // quem indicou
-  "toMemberId": ObjectId,     // quem recebe a indicação
-  "title": "Lead: Empresa Y",
-  "description": "...",
-  "contact": { "name": "", "phone":"", "email": "" },
-  "status": "open",          // open | contacted | qualified | won | lost
-  "createdAt": Date,
-  "updatedAt": Date
+  "_id": "ObjectId",
+  "fromMember": "ObjectId",
+  "toMember": "ObjectId",
+  "clientName": "Carlos Souza",
+  "businessType": "Consultoria Empresarial",
+  "description": "Indicação para análise de investimento",
+  "status": "in_progress",
+  "createdAt": "2025-11-06T14:00:00Z",
+  "updatedAt": "2025-11-07T10:00:00Z"
 }
 
 meetings — reuniões 1:1 e eventos
 ```json
 {
-  "_id": ObjectId,
-  "type": "one_to_one",        // one_to_one | group | event
-  "participants": [ObjectId],  // members
-  "date": Date,
-  "location": "Zoom / local",
-  "checkins": [{
-     "memberId": ObjectId,
-     "checkedAt": Date
-  }],
-  "notes": "..."
+  "_id": "ObjectId",
+  "title": "Reunião Semanal - Capítulo Alfa",
+  "date": "2025-11-10T12:00:00Z",
+  "location": "Espaço Coworking XYZ",
+  "participants": [
+    { "memberId": "ObjectId", "checkedIn": true, "checkInAt": "2025-11-10T12:05:00Z" },
+    { "memberId": "ObjectId", "checkedIn": false }
+  ]
 }
 
 announcements — avisos e comunicados
 ```json
 {
-  "_id": ObjectId,
-  "title": "Reunião de Junho",
-  "body": "...",
-  "authorId": ObjectId,
-  "pinned": false,
-  "audience": "all" , // or array of groups
-  "createdAt": Date
+  "_id": "ObjectId",
+  "title": "Reunião Especial de Fim de Ano",
+  "content": "Teremos uma confraternização e reunião especial no dia 20 de dezembro.",
+  "authorId": "ObjectId",
+  "createdAt": "2025-11-05T09:00:00Z",
+  "visibleTo": ["members", "admins"]
 }
 
 payments — financeiro / mensalidades
 ```json
 {
-  "_id": ObjectId,
-  "memberId": ObjectId,
-  "period": "2025-09",
-  "amount": 100.00,
-  "status": "pending", // pending | paid | late
-  "dueDate": Date,
-  "paidAt": Date,
-  "gateway": { "txId": "...", "provider": "stripe" }
+  "_id": "ObjectId",
+  "memberId": "ObjectId",
+  "month": "2025-11",
+  "amount": 150.0,
+  "status": "paid",
+  "paidAt": "2025-11-05T12:00:00Z",
+  "method": "pix",
+  "reference": "mensalidade-2025-11"
 }
-
-
