@@ -140,3 +140,35 @@ payments — financeiro / mensalidades
 ### Relacionamentos (NoSQL style)
 - invites.intentId -> referência a intents._id (populate Mongoose).
 - members referenciados em referrals.fromMemberId, referrals.toMemberId, meetings.participants, payments.memberId.
+
+---
+
+## Estrutura de componentes (Frontend — Next.js)
+Objetivo: componetização atômica e modular, fácil teste e reutilização.
+
+frontend/
+└── src/
+    ├── app/                # (App Router) rotas/pages se for App Router OR pages/ se Pages Router
+    ├── components/
+    │   ├── ui/             # componentes atômicos: Button, Input, Card, Modal, Avatar
+    │   ├── layouts/        # wrappers: MainLayout, AdminLayout
+    │   ├── modules/        # features de alto nível (FormIntent, AdminIntentsList, CadastroForm, ReferralsModule)
+    │   ├── hooks/          # useAuth, useFetch, useForm, useToast
+    │   └── providers/      # AdminProvider (token), MemberProvider (auth)
+    ├── services/           # api client (axios), adapters e business services (intentsService.js)
+    ├── styles/             # globals, tokens
+    └── utils/              # validators, formatters
+
+### Padrões e responsabilidades
+- ui/: componentes puros, sem lógica de negócio; aceitam props e callbacks.
+- modules/: combinam UI e serviços → contêm lógica específica de páginas/flows.
+- layouts/: controlam cabeçalho, navegação, footers, e zonas de conteúdo.
+- providers/: Context API para estado global: AdminContext (admin token), AuthContext (se implementar login), QueryClientProvider (react-query).
+- hooks/: encapsulam reuso de lógica (ex: useInviteValidation(token), useIntents({page})).
+- services/api.js: instancia axios com baseURL; interceptors para auth header, tratamento de erros.
+
+### Estado global
+- Admin token: store simples via AdminContext (variável de ambiente para dev; localStorage para persistência).
+- Dados de sessão de membro: AuthContext com JWT quando implementar login.
+- Caches/async: favor react-query para fetch/caching e invalidações (intents list, referrals, members).
+
