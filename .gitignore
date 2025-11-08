@@ -1,0 +1,18 @@
+# Node
+node_modules/
+npm-debug.log
+.env
+.env.*
+.DS_Store
+
+# Logs
+logs
+*.log
+
+# Build
+dist/
+.next/
+coverage/
+
+# Docker volumes
+mongo_data/
