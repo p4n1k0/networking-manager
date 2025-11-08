@@ -1,18 +1,83 @@
-# Node
+# ==========================================
+# 🌐 GERAL
+# ==========================================
 node_modules/
-npm-debug.log
 .env
 .env.*
-.DS_Store
-
-# Logs
-logs
-*.log
-
-# Build
+!.env.example
 dist/
-.next/
+build/
 coverage/
+.DS_Store
+*.log
+*.lock
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# Docker volumes
-mongo_data/
+# ==========================================
+# 📦 MONOREPO / WORKSPACES
+# ==========================================
+apps/*/node_modules/
+apps/*/.next/
+apps/*/dist/
+apps/*/coverage/
+apps/*/.env
+apps/*/.env.*
+packages/*/node_modules/
+packages/*/dist/
+packages/*/.turbo/
+
+# ==========================================
+# 🧱 FRONTEND (Next.js)
+# ==========================================
+.next/
+out/
+.vercel/
+.cache/
+.next.cache/
+*.tsbuildinfo
+
+# ==========================================
+# ⚙️ BACKEND (Express / Node)
+# ==========================================
+/backend/node_modules/
+/backend/dist/
+/backend/coverage/
+/backend/.env
+/backend/.env.local
+/backend/.env.test
+
+# ==========================================
+# 🐳 DOCKER
+# ==========================================
+*.pid
+*.seed
+docker-compose.override.yml
+docker-data/
+tmp/
+logs/
+*.sqlite
+
+# ==========================================
+# 🧪 TESTES (Jest / RTL)
+# ==========================================
+/coverage/
+*.spec.ts
+*.spec.js
+*.test.ts
+*.test.js
+jest-coverage/
+jest-cache/
+
+# ==========================================
+# 🧰 EDITORES E SISTEMA
+# ==========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*.bak
+*.tmp
+Thumbs.db
