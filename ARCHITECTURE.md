@@ -43,7 +43,7 @@ intents — intenções de paticipação (porta de entrada)
   "approvedBy": "ObjectId", 
   "token": "uuid-gerado-para-cadastro"
 }
-
+```
 invites — convites gerados ao aprovar uma intent
 ```json
 {
@@ -54,7 +54,7 @@ invites — convites gerados ao aprovar uma intent
   "status": "valid",
   "expiresAt": "2025-12-01T00:00:00Z"
 }
-
+```
 members — cadastros completos (membros ativos)
 ```json
 {
@@ -78,7 +78,7 @@ members — cadastros completos (membros ativos)
     "thanksReceived": 1
   }
 }
-
+```
 referrals — indicações / referências de negócio
 ```json
 {
@@ -92,7 +92,7 @@ referrals — indicações / referências de negócio
   "createdAt": "2025-11-06T14:00:00Z",
   "updatedAt": "2025-11-07T10:00:00Z"
 }
-
+```
 meetings — reuniões 1:1 e eventos
 ```json
 {
@@ -105,7 +105,7 @@ meetings — reuniões 1:1 e eventos
     { "memberId": "ObjectId", "checkedIn": false }
   ]
 }
-
+```
 announcements — avisos e comunicados
 ```json
 {
@@ -116,7 +116,7 @@ announcements — avisos e comunicados
   "createdAt": "2025-11-05T09:00:00Z",
   "visibleTo": ["members", "admins"]
 }
-
+```
 payments — financeiro / mensalidades
 ```json
 {
@@ -129,3 +129,4 @@ payments — financeiro / mensalidades
   "method": "pix",
   "reference": "mensalidade-2025-11"
 }
+```
