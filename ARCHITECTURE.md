@@ -146,6 +146,7 @@ payments — financeiro / mensalidades
 ## Estrutura de componentes (Frontend — Next.js)
 Objetivo: componetização atômica e modular, fácil teste e reutilização.
 
+```bash
 frontend/
 └── src/
     ├── app/                # (App Router) rotas/pages se for App Router OR pages/ se Pages Router
@@ -158,6 +159,7 @@ frontend/
     ├── services/           # api client (axios), adapters e business services (intentsService.js)
     ├── styles/             # globals, tokens
     └── utils/              # validators, formatters
+```
 
 ### Padrões e responsabilidades
 - ui/: componentes puros, sem lógica de negócio; aceitam props e callbacks.
@@ -172,3 +174,4 @@ frontend/
 - Dados de sessão de membro: AuthContext com JWT quando implementar login.
 - Caches/async: favor react-query para fetch/caching e invalidações (intents list, referrals, members).
 
+---
