@@ -29,7 +29,7 @@ Fluxo:
 
 # Coleções principais
 intents — intenções de paticipação (porta de entrada)
-
+```json
 {
   "_id": ObjectId,
   "name": "Maria Silva",
