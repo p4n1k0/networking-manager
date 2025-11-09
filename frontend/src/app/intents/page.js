@@ -1,37 +1,77 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api";
+import Card from "@/components/ui/Card";
+import Table from "@/components/ui/Table";
+import Button from "@/components/ui/Button";
+import IntentForm from "@/components/modules/IntentForm";
 
-export default function IntencaoPage() {
-  const [form, setForm] = useState({ name: "", email: "", phone: "", business: "" });
-  const [msg, setMsg] = useState("");
+export default function IntentsPage() {
+  const [showForm, setShowForm] = useState(false);
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ["intents"],
+    queryFn: async () => {
+      const res = await api.get("/v1/intents", {
+        headers: { "x-admin-token": process.env.NEXT_PUBLIC_ADMIN_TOKEN || "" },
+      });
+      return res.data.items || res.data;
+    },
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await api.post("/v1/intents", form);
-      setMsg("Intenção enviada — obrigado! Aguarde contato.");
-      setForm({ name: "", email: "", phone: "", business: "" });
-    } catch (err) {
-      console.error(err);
-      setMsg("Erro ao enviar intenção.");
-    }
-  };
+  const columns = [
+    { header: "Nome", accessor: "name" },
+    { header: "E-mail", accessor: "email" },
+    { header: "Telefone", accessor: "phone" },
+    { header: "Negócio", accessor: "business" },
+    { header: "Status", accessor: "status" },
+    { header: "Criado em", accessor: "createdAt" },
+  ];
+
+  const formattedData =
+    data?.map((item) => ({
+      name: item.name,
+      email: item.email,
+      phone: item.phone,
+      business: item.business,
+      status:
+        item.status === "approved"
+          ? "✅ Aprovado"
+          : item.status === "rejected"
+          ? "❌ Recusado"
+          : "🕓 Pendente",
+      createdAt: new Date(item.createdAt).toLocaleString("pt-BR"),
+    })) || [];
 
   return (
-    <main className="max-w-xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Quero participar</h1>
-      <form onSubmit={handleSubmit} className="space-y-3 bg-white p-6 rounded shadow">
-        <input name="name" placeholder="Nome" value={form.name} onChange={handleChange} className="w-full border p-2" required />
-        <input name="email" placeholder="Email" value={form.email} onChange={handleChange} className="w-full border p-2" required />
-        <input name="phone" placeholder="Telefone" value={form.phone} onChange={handleChange} className="w-full border p-2" />
-        <input name="business" placeholder="Área de atuação" value={form.business} onChange={handleChange} className="w-full border p-2" />
-        <button className="bg-blue-600 text-white px-4 py-2 rounded">Enviar intenção</button>
-      </form>
-      {msg && <p className="mt-3">{msg}</p>}
-    </main>
+    <div className="p-8 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-semibold text-gray-800">Intenções de Participação</h1>
+        <Button onClick={() => setShowForm(!showForm)}>
+          {showForm ? "Fechar" : "Nova Intenção"}
+        </Button>
+      </div>
+
+      {showForm && (
+        <Card>
+          <IntentForm
+            onSuccess={() => {
+              refetch();
+              setShowForm(false);
+            }}
+          />
+        </Card>
+      )}
+
+      <Card>
+        {isLoading ? (
+          <p className="text-gray-500">Carregando intenções...</p>
+        ) : (
+          <Table columns={columns} data={formattedData} />
+        )}
+      </Card>
+    </div>
   );
 }
