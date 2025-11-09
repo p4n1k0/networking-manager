@@ -144,11 +144,11 @@ frontend/
 └── src/
     ├── app/
     ├── components/
-    │   ├── ui/
+    │   ├── hooks/
     │   ├── layouts/
     │   ├── modules/
-    │   ├── hooks/
-    │   └── providers/
+    │   ├── providers/
+    │   └── ui/
     ├── services/
     ├── styles/
     └── utils/
