@@ -1,23 +1,59 @@
 "use client";
-import { useIntents } from "@/services/hooks/useIntents";
+
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/services/api";
+import Card from "@/components/ui/Card";
+import Button from "@/components/ui/Button";
+import IntentList from "@/components/modules/IntentList";
+import IntentDetails from "@/components/modules/IntentDetails";
 
 export default function AdminPage() {
-  const { data: items, isLoading, error } = useIntents();
+  const [selectedIntent, setSelectedIntent] = useState(null);
 
-  if (isLoading) return <p>Carregando intenções...</p>;
-  if (error) return <p>Erro ao carregar intenções 😥</p>;
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["intents"],
+    queryFn: async () => {
+      const res = await api.get("/v1/intents", {
+        headers: { "x-admin-token": process.env.NEXT_PUBLIC_ADMIN_TOKEN || "" },
+      });
+      return res.data.items || res.data;
+    },
+  });
 
   return (
-    <div>
-      <h1>Lista de Intenções</h1>
-      {items?.length ? (
-        <ul>
-          {items.map((i) => (
-            <li key={i.id}>{i.nome} - {i.email}</li>
-          ))}
-        </ul>
-      ) : (
-        <p>Nenhuma intenção encontrada</p>
+    <div className="p-8 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-semibold text-gray-800">
+          Painel do Administrador
+        </h1>
+        <Button onClick={() => refetch()}>🔄 Atualizar</Button>
+      </div>
+
+      <Card>
+        {isLoading ? (
+          <p className="text-gray-500">Carregando intenções...</p>
+        ) : error ? (
+          <p className="text-red-500">
+            Erro ao carregar intenções. Verifique o backend.
+          </p>
+        ) : (
+          <IntentList
+            intents={data || []}
+            onSelect={(intent) => setSelectedIntent(intent)}
+          />
+        )}
+      </Card>
+
+      {selectedIntent && (
+        <IntentDetails
+          intent={selectedIntent}
+          onClose={() => setSelectedIntent(null)}
+          onAction={() => {
+            refetch();
+            setSelectedIntent(null);
+          }}
+        />
       )}
     </div>
   );

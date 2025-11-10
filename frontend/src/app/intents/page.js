@@ -1,13 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import IntentList from "@/components/modules/IntentList";
 import IntentForm from "@/components/modules/IntentForm";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
-import { useState } from "react";
 
 export default function IntentsPage() {
   const [showForm, setShowForm] = useState(false);
+  const [refresh, setRefresh] = useState(false);
 
   return (
     <div className="p-8 space-y-6">
@@ -22,12 +23,16 @@ export default function IntentsPage() {
 
       {showForm && (
         <Card>
-          <IntentForm onSuccess={() => setShowForm(false)} />
+          <IntentForm
+            onSuccess={() => {
+              setShowForm(false);
+              setRefresh(!refresh); // 🔄 força o IntentList a refazer o fetch
+            }}
+          />
         </Card>
       )}
 
-      {/* 🔹 Lista completa de intenções */}
-      <IntentList />
+      <IntentList refresh={refresh} />
     </div>
   );
 }
