@@ -1,4 +1,3 @@
-// src/server.js
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
@@ -9,6 +8,9 @@ import inviteRoutes from './routes/inviteRoutes.js';
 import memberRoutes from './routes/memberRoutes.js';
 import referralRoutes from './routes/referralRoutes.js';
 import meetingRoutes from './routes/meetingRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
+import { startPaymentCron } from './jobs/paymentCron.js';
+
 
 dotenv.config();
 
@@ -25,6 +27,7 @@ app.use('/api/invites', inviteRoutes);
 app.use('/api/members', memberRoutes);
 app.use('/api/referrals', referralRoutes);
 app.use('/api/meetings', meetingRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Teste rápido
 app.get('/', (req, res) => {
@@ -36,8 +39,12 @@ connectDB()
   .then(() => {
     const PORT = process.env.PORT || 4000;
     app.listen(PORT, () => console.log(`✅ Server rodando na porta ${PORT}`));
+    // Inicia o cron job para pagamentos
+    startPaymentCron();
   })
   .catch((err) => {
     console.error('❌ Falha ao conectar ao banco de dados:', err);
     process.exit(1);
   });
+
+
