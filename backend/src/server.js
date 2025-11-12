@@ -1,22 +1,39 @@
+// src/server.js
 import express from 'express';
 import dotenv from 'dotenv';
+import cors from 'cors';
 import { connectDB } from './config/db.js';
+import intentRoutes from './routes/intentRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import inviteRoutes from './routes/inviteRoutes.js';
+import memberRoutes from './routes/memberRoutes.js';
 
 dotenv.config();
 
 const app = express();
+
+// Middleware
+app.use(cors());
 app.use(express.json());
+
+// Rotas
+app.use('/api/intents', intentRoutes);
 app.use('/api', userRoutes);
+app.use('/api/invites', inviteRoutes);
+app.use('/api/members', memberRoutes);
 
-// Conecta ao banco
-connectDB();
-
-// Rotas de teste
+// Teste rápido
 app.get('/', (req, res) => {
-  res.send('API do Networking Manager rodando 🚀');
+  res.send('🚀 API do Networking Manager rodando!');
 });
 
-// Inicia o servidor
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+// Conecta ao banco antes de subir o servidor
+connectDB()
+  .then(() => {
+    const PORT = process.env.PORT || 4000;
+    app.listen(PORT, () => console.log(`✅ Server rodando na porta ${PORT}`));
+  })
+  .catch((err) => {
+    console.error('❌ Falha ao conectar ao banco de dados:', err);
+    process.exit(1);
+  });
