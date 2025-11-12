@@ -8,6 +8,7 @@ import userRoutes from './routes/userRoutes.js';
 import inviteRoutes from './routes/inviteRoutes.js';
 import memberRoutes from './routes/memberRoutes.js';
 import referralRoutes from './routes/referralRoutes.js';
+import meetingRoutes from './routes/meetingRoutes.js';
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ app.use('/api', userRoutes);
 app.use('/api/invites', inviteRoutes);
 app.use('/api/members', memberRoutes);
 app.use('/api/referrals', referralRoutes);
+app.use('/api/meetings', meetingRoutes);
 
 // Teste rápido
 app.get('/', (req, res) => {
