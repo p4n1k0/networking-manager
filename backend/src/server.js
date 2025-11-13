@@ -12,6 +12,7 @@ import paymentRoutes from './routes/paymentRoutes.js';
 import { startPaymentCron } from './jobs/paymentCron.js';
 import announcementRoutes from './routes/announcementRoutes.js';
 import healthRoutes from './routes/healthRoutes.js';
+import { errorHandler } from './middlewares/errorMiddleware.js';
 
 
 dotenv.config();
@@ -32,6 +33,9 @@ app.use('/api/meetings', meetingRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/health', healthRoutes);
+
+// Middleware de tratamento de erros
+app.use(errorHandler);
 
 // Teste rápido
 app.get('/', (req, res) => {
