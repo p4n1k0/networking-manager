@@ -1,12 +1,35 @@
 "use client";
 
-import React from "react";
+import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/services/api";
 import Button from "@/components/ui/Button";
 
-export default function IntentList({ intents = [], onSelect }) {
-  if (!intents.length) {
+export default function IntentList({ refresh = false, onSelect }) {
+  // Busca intenções
+  const {
+    data: intents = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
+    queryKey: ["intents"],
+    queryFn: async () => {
+      const res = await api.get("/intents");
+      return res.data;
+    },
+  });
+
+  // Quando refresh mudar, força refetch
+  useEffect(() => {
+    refetch();
+  }, [refresh, refetch]);
+
+  if (isLoading) return <p className="text-gray-500">Carregando intenções...</p>;
+  if (isError) return <p className="text-red-500">Erro ao carregar intenções.</p>;
+
+  if (!intents.length)
     return <p className="text-gray-500">Nenhuma intenção encontrada.</p>;
-  }
 
   return (
     <div className="overflow-x-auto">
@@ -40,7 +63,7 @@ export default function IntentList({ intents = [], onSelect }) {
                 {new Date(intent.createdAt).toLocaleString("pt-BR")}
               </td>
               <td className="px-4 py-2 text-center">
-                <Button size="sm" onClick={() => onSelect(intent)}>
+                <Button size="sm" onClick={() => onSelect?.(intent)}>
                   Detalhes
                 </Button>
               </td>

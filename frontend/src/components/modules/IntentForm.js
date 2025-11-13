@@ -11,7 +11,7 @@ export default function IntentForm({ onSuccess }) {
 
   const mutation = useMutation({
     mutationFn: async (data) => {
-      const res = await api.post("/v1/intents", data);
+      const res = await api.post("/intents", data);
       return res.data;
     },
     onSuccess: () => {
