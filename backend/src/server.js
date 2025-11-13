@@ -10,6 +10,7 @@ import referralRoutes from './routes/referralRoutes.js';
 import meetingRoutes from './routes/meetingRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import { startPaymentCron } from './jobs/paymentCron.js';
+import announcementRoutes from './routes/announcementRoutes.js';
 
 
 dotenv.config();
@@ -28,6 +29,7 @@ app.use('/api/members', memberRoutes);
 app.use('/api/referrals', referralRoutes);
 app.use('/api/meetings', meetingRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/announcements', announcementRoutes);
 
 // Teste rápido
 app.get('/', (req, res) => {
