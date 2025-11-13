@@ -82,3 +82,34 @@ export const deleteIntent = async (req, res) => {
     res.status(500).json({ error: "Erro interno do servidor" });
   }
 };
+
+/**
+ * @desc Atualizar status de uma intenção
+ * @route PATCH /api/intents/:id
+ * @access Admin
+ */
+export const updateIntentStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    if (!["approved", "rejected", "pending"].includes(status)) {
+      return res.status(400).json({ error: "Status inválido" });
+    }
+
+    const intent = await Intent.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+
+    if (!intent) {
+      return res.status(404).json({ error: "Intent não encontrada" });
+    }
+
+    res.json(intent);
+  } catch (error) {
+    console.error("Erro ao atualizar intent:", error);
+    res.status(500).json({ error: "Erro interno do servidor" });
+  }
+};
+

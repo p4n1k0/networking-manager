@@ -3,12 +3,14 @@
 import { useState } from "react";
 import IntentList from "@/components/modules/IntentList";
 import IntentForm from "@/components/modules/IntentForm";
+import IntentDetails from "@/components/modules/IntentDetails";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 
 export default function IntentsPage() {
   const [showForm, setShowForm] = useState(false);
   const [refresh, setRefresh] = useState(false);
+  const [selectedIntent, setSelectedIntent] = useState(null);
 
   return (
     <div className="p-8 space-y-6">
@@ -26,13 +28,34 @@ export default function IntentsPage() {
           <IntentForm
             onSuccess={() => {
               setShowForm(false);
-              setRefresh(!refresh); // 🔄 força o IntentList a refazer o fetch
+              setRefresh(!refresh); // força recarregar
             }}
           />
         </Card>
       )}
 
-      <IntentList refresh={refresh} />
+      <Card>
+        <IntentList
+          refresh={refresh}
+          onSelect={(intent) => setSelectedIntent(intent)}
+        />
+      </Card>
+
+      {/* MODAL DE DETALHES */}
+      {selectedIntent && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-xl p-6 shadow-xl">
+            <IntentDetails
+              intent={selectedIntent}
+              onClose={() => setSelectedIntent(null)}
+              onAction={() => {
+                setSelectedIntent(null);
+                setRefresh(!refresh);
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

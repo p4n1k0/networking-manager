@@ -12,12 +12,25 @@ export default function IntentDetails({ intent, onClose, onAction }) {
   const handleAction = async (status) => {
     setLoading(true);
     setErrorMsg("");
+
     try {
+      // ⬇️ <= Aqui buscamos o token do admin salvo no login
+      const token = typeof window !== "undefined"
+        ? localStorage.getItem("adminToken")
+        : null;
+
+      if (!token) {
+        setErrorMsg("Você precisa estar logado como administrador.");
+        setLoading(false);
+        return;
+      }
+
       await api.patch(
         `/intents/${intent._id}`,
         { status },
-        { headers: { "x-admin-token": process.env.NEXT_PUBLIC_ADMIN_TOKEN || "" } }
+        { headers: { Authorization: `Bearer ${token}` } } // 🔐 Envia JWT do admin
       );
+
       onAction();
     } catch (err) {
       console.error(err);
@@ -31,10 +44,12 @@ export default function IntentDetails({ intent, onClose, onAction }) {
     <Card>
       <div className="space-y-4">
         <h2 className="text-xl font-semibold text-gray-800">{intent.name}</h2>
+
         <p><strong>Email:</strong> {intent.email}</p>
         <p><strong>Telefone:</strong> {intent.phone}</p>
         <p><strong>Negócio:</strong> {intent.business}</p>
         <p><strong>Mensagem:</strong> {intent.message}</p>
+
         <p>
           <strong>Status:</strong>{" "}
           {intent.status === "approved"
@@ -43,7 +58,9 @@ export default function IntentDetails({ intent, onClose, onAction }) {
             ? "❌ Recusado"
             : "🕓 Pendente"}
         </p>
+
         {errorMsg && <p className="text-red-500">{errorMsg}</p>}
+
         <div className="flex gap-2">
           <Button
             onClick={() => handleAction("approved")}
@@ -51,12 +68,14 @@ export default function IntentDetails({ intent, onClose, onAction }) {
           >
             Aprovar
           </Button>
+
           <Button
             onClick={() => handleAction("rejected")}
             disabled={loading || intent.status === "rejected"}
           >
             Recusar
           </Button>
+
           <Button onClick={onClose} variant="secondary">
             Fechar
           </Button>
