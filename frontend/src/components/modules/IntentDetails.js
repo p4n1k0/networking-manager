@@ -14,7 +14,7 @@ export default function IntentDetails({ intent, onClose, onAction }) {
     setErrorMsg("");
     try {
       await api.patch(
-        `/v1/intents/${intent._id}`,
+        `/intents/${intent._id}`,
         { status },
         { headers: { "x-admin-token": process.env.NEXT_PUBLIC_ADMIN_TOKEN || "" } }
       );

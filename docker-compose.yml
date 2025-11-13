@@ -1,0 +1,54 @@
+services:
+  # 🗄️ Banco de Dados MongoDB
+  mongo:
+    image: mongo:6.0
+    container_name: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  # ⚙️ Backend - Node + Express
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: networking-backend
+    restart: always
+    env_file:
+      - ./backend/.env
+    ports:
+      - "4000:4000"
+    depends_on:
+      - mongo
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/networking_manager
+      - NODE_ENV=development
+      - PORT=4000
+    command: npm run dev
+
+  # 🌐 Frontend - Next.js
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: networking-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:4000/api
+      - NEXT_PUBLIC_ADMIN_KEY=123456
+    command: npm run dev
+
+volumes:
+  mongo_data:
