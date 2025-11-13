@@ -11,6 +11,7 @@ import meetingRoutes from './routes/meetingRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import { startPaymentCron } from './jobs/paymentCron.js';
 import announcementRoutes from './routes/announcementRoutes.js';
+import healthRoutes from './routes/healthRoutes.js';
 
 
 dotenv.config();
@@ -30,6 +31,7 @@ app.use('/api/referrals', referralRoutes);
 app.use('/api/meetings', meetingRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/announcements', announcementRoutes);
+app.use('/api/health', healthRoutes);
 
 // Teste rápido
 app.get('/', (req, res) => {
