@@ -12,9 +12,9 @@ import { verifyAdmin } from "../middlewares/verifyAdmin.js";
 const router = express.Router();
 
 router.post("/", createIntent);
-router.get("/", listIntents);
-router.get("/:id", verifyToken, verifyAdmin, getIntentById);
-router.delete("/:id", verifyToken, verifyAdmin, deleteIntent);
-router.patch("/:id", verifyToken, verifyAdmin, updateIntentStatus);
+router.get("/", verifyAdmin,listIntents);
+router.get("/:id", verifyAdmin, getIntentById);
+router.delete("/:id", verifyAdmin, deleteIntent);
+router.patch("/:id", verifyAdmin, updateIntentStatus);
 
 export default router;

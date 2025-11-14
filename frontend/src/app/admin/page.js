@@ -1,60 +1,55 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api";
-import Card from "@/components/ui/Card";
-import Button from "@/components/ui/Button";
-import IntentList from "@/components/modules/IntentList";
-import IntentDetails from "@/components/modules/IntentDetails";
+import { useRouter } from "next/navigation";
 
-export default function AdminPage() {
-  const [selectedIntent, setSelectedIntent] = useState(null);
+export default function AdminLogin() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const router = useRouter();
 
-  const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["intents"],
-    queryFn: async () => {
-      const res = await api.get("/v1/intents", {
-        headers: { "x-admin-token": process.env.NEXT_PUBLIC_ADMIN_TOKEN || "" },
-      });
-      return res.data.items || res.data;
-    },
-  });
+  const handleLogin = async () => {
+    setError("");
+
+    try {
+      const res = await api.post("/admin/login", { email, password });
+
+      // 🎯 AQUI SALVA O TOKEN NO LOCALSTORAGE
+      localStorage.setItem("adminToken", res.data.token);
+
+      router.push("/admin/dashboard");
+    } catch (err) {
+      setError("Credenciais inválidas.");
+    }
+  };
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold text-gray-800">
-          Painel do Administrador
-        </h1>
-        <Button onClick={() => refetch()}>🔄 Atualizar</Button>
-      </div>
+    <div className="max-w-sm mx-auto p-4">
+      <h2 className="text-xl font-semibold mb-4">Login Admin</h2>
 
-      <Card>
-        {isLoading ? (
-          <p className="text-gray-500">Carregando intenções...</p>
-        ) : error ? (
-          <p className="text-red-500">
-            Erro ao carregar intenções. Verifique o backend.
-          </p>
-        ) : (
-          <IntentList
-            intents={data || []}
-            onSelect={(intent) => setSelectedIntent(intent)}
-          />
-        )}
-      </Card>
+      <input
+        className="w-full mb-2 p-2 border"
+        placeholder="Email"
+        onChange={(e) => setEmail(e.target.value)}
+      />
 
-      {selectedIntent && (
-        <IntentDetails
-          intent={selectedIntent}
-          onClose={() => setSelectedIntent(null)}
-          onAction={() => {
-            refetch();
-            setSelectedIntent(null);
-          }}
-        />
-      )}
+      <input
+        type="password"
+        className="w-full mb-2 p-2 border"
+        placeholder="Senha"
+        onChange={(e) => setPassword(e.target.value)}
+      />
+
+      {error && <p className="text-red-500">{error}</p>}
+
+      <button
+        onClick={handleLogin}
+        className="w-full bg-blue-600 text-white py-2 mt-3"
+      >
+        Entrar
+      </button>
     </div>
   );
 }

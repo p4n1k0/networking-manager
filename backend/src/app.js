@@ -12,6 +12,7 @@ import announcementRoutes from './routes/announcementRoutes.js';
 import healthRoutes from './routes/healthRoutes.js';
 import { errorHandler } from './middlewares/errorMiddleware.js';
 import authRoutes from './routes/auth.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Middleware de erros
 app.use(errorHandler);

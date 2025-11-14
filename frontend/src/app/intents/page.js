@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import IntentList from "@/components/modules/IntentList";
 import IntentForm from "@/components/modules/IntentForm";
 import IntentDetails from "@/components/modules/IntentDetails";
 import Card from "@/components/ui/Card";
@@ -12,8 +11,27 @@ export default function IntentsPage() {
   const [refresh, setRefresh] = useState(false);
   const [selectedIntent, setSelectedIntent] = useState(null);
 
+  const [successMessage, setSuccessMessage] = useState("");
+
+  const handleSuccess = () => {
+    setShowForm(false);
+    setRefresh(!refresh);
+
+    setSuccessMessage("🎉 Intenção enviada com sucesso!");
+
+    setTimeout(() => setSuccessMessage(""), 4000);
+  };
+
   return (
     <div className="p-8 space-y-6">
+
+      {/* 🔔 AVISO DE SUCESSO */}
+      {successMessage && (
+        <div className="p-3 bg-green-100 border border-green-300 text-green-800 rounded">
+          {successMessage}
+        </div>
+      )}
+
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold text-gray-800">
           Intenções de Participação
@@ -25,21 +43,9 @@ export default function IntentsPage() {
 
       {showForm && (
         <Card>
-          <IntentForm
-            onSuccess={() => {
-              setShowForm(false);
-              setRefresh(!refresh); // força recarregar
-            }}
-          />
+          <IntentForm onSuccess={handleSuccess} />
         </Card>
       )}
-
-      <Card>
-        <IntentList
-          refresh={refresh}
-          onSelect={(intent) => setSelectedIntent(intent)}
-        />
-      </Card>
 
       {/* MODAL DE DETALHES */}
       {selectedIntent && (
