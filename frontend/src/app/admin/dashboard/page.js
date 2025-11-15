@@ -8,17 +8,21 @@ export default function AdminDashboard() {
   const [intents, setIntents] = useState([]);
   const [showIntents, setShowIntents] = useState(false);
 
-  // 🔥 Configura token automaticamente no header
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
     if (token) {
       api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      console.log("Token aplicado ao axios:", token);
+    } else {
+      console.log("Token inexistente no localStorage");
     }
   }, []);
 
+
+  // 🔥 Função para carregar intenções
   const loadIntents = async () => {
     try {
-      const res = await api.get("/intents"); 
+      const res = await api.get("/intents");
       setIntents(res.data);
       setShowIntents(true);
     } catch (err) {

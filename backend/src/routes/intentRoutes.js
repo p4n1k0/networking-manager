@@ -14,6 +14,6 @@ router.post("/", createIntent);
 router.get("/", verifyAdmin, listIntents);
 router.get("/:id", verifyAdmin, getIntentById);
 router.delete("/:id", verifyAdmin, deleteIntent);
-router.patch("/:id", verifyAdmin, updateIntentStatus);
+router.patch("/:id/status", verifyAdmin, updateIntentStatus);
 
 export default router;
