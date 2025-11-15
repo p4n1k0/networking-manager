@@ -1,31 +1,62 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import api from "@/services/api";
 import MemberForm from "@/components/modules/MemberForm";
 
-export default function MemberPage({ params }) {
+export default function MemberTokenPage({ params }) {
   const { token } = params;
-  const [valid, setValid] = useState(null); // null = carregando, true/false = status
+  const router = useRouter();
+
+  const [loading, setLoading] = useState(true);
+  const [valid, setValid] = useState(false);
+  const [invite, setInvite] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const validateToken = async () => {
+    async function validate() {
       try {
-        const res = await api.get(`/v1/invites/${token}/validate`);
-        setValid(res.data.valid);
+        const res = await api.get(`/invites/${token}/validate`);
+        if (res.data.valid) {
+          setValid(true);
+          setInvite(res.data);
+        } else {
+          setError("Este convite não é mais válido.");
+        }
       } catch (err) {
-        setValid(false);
+        console.error(err);
+        setError("Não foi possível validar este convite.");
+      } finally {
+        setLoading(false);
       }
-    };
-    validateToken();
+    }
+    validate();
   }, [token]);
 
-  if (valid === null) return <p>Verificando token...</p>;
-  if (valid === false) return <p className="text-red-600">Token inválido ou expirado.</p>;
+  async function onSubmit(data) {
+    try {
+      const payload = { ...data, token };
+      await api.post("/members", payload);
+      router.push("/member/sucesso");
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao criar cadastro: " + err.response?.data?.message);
+    }
+  }
+
+  if (loading) return <div className="p-6">Validando convite...</div>;
+  if (error) return <div className="text-red-600 p-6">{error}</div>;
+  if (!valid) return <div className="text-red-600 p-6">Convite inválido.</div>;
 
   return (
-    <div className="max-w-2xl mx-auto mt-10">
-      <MemberForm token={token} />
+    <div className="max-w-2xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-4">Finalizar Cadastro</h1>
+      <p className="text-gray-600 mb-6">
+        Convite para: <strong>{invite.intentionEmail}</strong>
+      </p>
+
+      <MemberForm onSubmit={onSubmit} />
     </div>
   );
 }

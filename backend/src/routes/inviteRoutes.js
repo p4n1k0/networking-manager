@@ -1,10 +1,11 @@
 import express from "express";
-import { approveIntent, validateInvite, listInvites } from "../controllers/inviteController.js";
+import { validateInviteToken } from "../controllers/inviteController.js";
+
 
 const router = express.Router();
 
-router.post("/:intentId/approve", approveIntent);
-router.get("/:token/validate", validateInvite);
-router.get("/", listInvites);
+
+router.get("/:token/validate", validateInviteToken);
+
 
 export default router;

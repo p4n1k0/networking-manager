@@ -35,7 +35,7 @@ export const createIntent = async (req, res) => {
 /**
  * @desc Listar todas as intenções
  * @route GET /api/intents
- * @access Admin (por exemplo)
+ * @access Admin
  */
 export const listIntents = async (req, res) => {
   try {
