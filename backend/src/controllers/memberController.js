@@ -1,5 +1,7 @@
 import Invite from "../models/Invite.js";
 import Member from "../models/Member.js";
+import bcrypt from "bcryptjs";
+import mongoose from "mongoose";
 
 /**
  * @desc Cadastrar novo membro a partir de um convite válido
@@ -8,30 +10,37 @@ import Member from "../models/Member.js";
  */
 export const registerMember = async (req, res) => {
   try {
-    const { token, name, email, phone, business, company, position, linkedin } = req.body;
+    const { token, name, email, phone, business, password, company, position, linkedin } = req.body;
 
-    // Verifica o convite
-    const invite = await Invite.findOne({ token });
-    if (!invite) {
-      return res.status(404).json({ error: "Convite não encontrado" });
+    // Check required fields
+    if (!token || !name || !email || !phone || !business || !password) {
+      return res.status(400).json({ error: "Campos obrigatórios faltando." });
     }
+
+    // Validate invite
+    const invite = await Invite.findOne({ token });
+    if (!invite) return res.status(404).json({ error: "Convite não encontrado" });
 
     if (invite.status !== "valid" || invite.expiresAt < new Date()) {
       return res.status(400).json({ error: "Convite inválido ou expirado" });
     }
 
-    // Cria membro
+    // Check duplicate email
+    const existing = await Member.findOne({ email });
+    if (existing) return res.status(409).json({ error: "E-mail já cadastrado" });
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create member
     const member = await Member.create({
       name,
-      email,
+      email: email.toLowerCase(),
       phone,
       business,
+      password: hashedPassword,
       profile: { company, position, linkedin },
     });
-
-    // Marca o convite como usado
-    invite.status = "used";
-    await invite.save();
 
     res.status(201).json({
       message: "Membro cadastrado com sucesso",
@@ -39,6 +48,13 @@ export const registerMember = async (req, res) => {
       status: member.status,
       joinedAt: member.joinedAt,
     });
+
+    // Mark invite as used
+    await Invite.updateOne(
+      { token },
+      { $set: { status: "used" } }
+    );
+
   } catch (error) {
     console.error("Erro ao registrar membro:", error);
     res.status(500).json({ error: "Erro interno do servidor" });

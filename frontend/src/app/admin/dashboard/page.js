@@ -34,7 +34,7 @@ export default function AdminDashboard() {
   // 🔥 Função para aprovar ou rejeitar
   const updateIntentStatus = async (intentId, status) => {
     try {
-      await api.patch(`/intents/${intentId}`, { status });
+      await api.patch(`/intents/${intentId}/status`, { status });
       loadIntents(); // recarrega
     } catch (err) {
       console.error(err);

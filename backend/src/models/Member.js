@@ -5,6 +5,7 @@ const memberSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   phone: { type: String },
   business: { type: String },
+  password: { type: String, required: true }, // senha hash
   role: { type: String, enum: ["member", "admin"], default: "member" },
   status: { type: String, enum: ["active", "inactive"], default: "active" },
   joinedAt: { type: Date, default: Date.now },

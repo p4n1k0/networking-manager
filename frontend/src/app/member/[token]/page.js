@@ -1,12 +1,12 @@
 "use client";
 
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import api from "@/services/api";
 import MemberForm from "@/components/modules/MemberForm";
 
-export default function MemberTokenPage({ params }) {
-  const { token } = params;
+export default function MemberTokenPage() {
+  const { token } = useParams();
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
@@ -22,7 +22,7 @@ export default function MemberTokenPage({ params }) {
           setValid(true);
           setInvite(res.data);
         } else {
-          setError("Este convite não é mais válido.");
+          setError(res.data.message || "Convite inválido.");
         }
       } catch (err) {
         console.error(err);
@@ -31,23 +31,21 @@ export default function MemberTokenPage({ params }) {
         setLoading(false);
       }
     }
-    validate();
+
+    if (token) validate();
   }, [token]);
 
   async function onSubmit(data) {
     try {
-      const payload = { ...data, token };
-      await api.post("/members", payload);
+      await api.post("/members", { ...data, token });
       router.push("/member/sucesso");
     } catch (err) {
-      console.error(err);
-      alert("Erro ao criar cadastro: " + err.response?.data?.message);
+      alert(err.response?.data?.error || "Erro ao criar cadastro");
     }
   }
 
   if (loading) return <div className="p-6">Validando convite...</div>;
-  if (error) return <div className="text-red-600 p-6">{error}</div>;
-  if (!valid) return <div className="text-red-600 p-6">Convite inválido.</div>;
+  if (error) return <div className="p-6 text-red-600">{error}</div>;
 
   return (
     <div className="max-w-2xl mx-auto p-6">

@@ -93,32 +93,30 @@ export const deleteIntent = async (req, res) => {
 export const updateIntentStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    if (!["approved", "rejected", "pending"].includes(status)) {
-      return res.status(400).json({ error: "Status inválido" });
-    }
+    const allowed = ["approved", "rejected", "pending"];
+    if (!allowed.includes(status)) return res.status(400).json({ error: "Status inválido" });
 
     const intent = await Intent.findById(req.params.id);
     if (!intent) return res.status(404).json({ error: "Intent não encontrada" });
 
     intent.status = status;
+    // opcional: logged admin id (se existir auth)
+    if (req.adminId) intent.approvedBy = req.adminId;
     await intent.save();
 
-    // Se aprovado, gera invite e salva
     if (status === "approved") {
-      const token = crypto.randomUUID();
+      const token = crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString("hex");
       const invite = await Invite.create({
         token,
         intentionId: intent._id,
-        email: intent.email,
+        email: intent.email.toLowerCase(),
         status: "valid",
         expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30), // 30 dias
       });
-
-      // Anexar invite info na resposta
       return res.json({ intent, invite });
     }
 
-    return res.json(intent);
+    return res.json({ intent });
   } catch (error) {
     console.error("Erro ao atualizar intent:", error);
     return res.status(500).json({ error: "Erro interno" });
