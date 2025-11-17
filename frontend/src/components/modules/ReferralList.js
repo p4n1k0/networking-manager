@@ -10,7 +10,7 @@ export default function ReferralList({ memberId, type = "sent" }) {
   const { data: referrals = [], isLoading, error } = useQuery({
     queryKey: ["referrals", memberId, type],
     queryFn: async () => {
-      const res = await api.get(`/v1/referrals?memberId=${memberId}&type=${type}`);
+      const res = await api.get(`/referrals?memberId=${memberId}&type=${type}`);
       return res.data;
     },
     enabled: !!memberId,
@@ -18,7 +18,7 @@ export default function ReferralList({ memberId, type = "sent" }) {
 
   const mutation = useMutation({
     mutationFn: async ({ id, status }) => {
-      await api.patch(`/v1/referrals/${id}`, { status });
+      await api.patch(`/referrals/${id}`, { status });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["referrals", memberId, type] });

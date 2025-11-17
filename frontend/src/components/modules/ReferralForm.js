@@ -11,7 +11,7 @@ export default function ReferralForm({ memberId, onSuccess }) {
 
   const mutation = useMutation({
     mutationFn: async (data) => {
-      const res = await api.post("/v1/referrals", { fromMemberId: memberId, ...data });
+      const res = await api.post("/referrals", { fromMemberId: memberId, ...data });
       return res.data;
     },
     onSuccess: () => {

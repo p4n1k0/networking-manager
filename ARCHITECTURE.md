@@ -168,7 +168,7 @@ frontend/
 
 ### 1️⃣ Intents — Cadastro de intenção de participação
 
-**POST /api/v1/intents**
+**POST /api/intents**
 ```json
 {
   "name": "João Pereira",
@@ -191,7 +191,7 @@ frontend/
 
 ---
 
-**GET /api/v1/intents**
+**GET /api/admin/intents**
 ```json
 {
   "page": 1,
@@ -211,7 +211,7 @@ frontend/
 
 ### 2️⃣ Invites — Convites gerados ao aprovar uma intenção
 
-**POST /api/v1/invites/:intentId/approve**
+**POST /api/invites/:intentId/approve**
 ```json
 {
   "inviteId": "65b8ffb2a3c1a90010a4ee22",
@@ -222,7 +222,7 @@ frontend/
 }
 ```
 
-**GET /api/v1/invites/:token/validate**
+**GET /api/invites/:token/validate**
 ```json
 {
   "valid": true,
@@ -235,7 +235,7 @@ frontend/
 
 ### 3️⃣ Members — Cadastro e gestão de membros
 
-**POST /api/v1/members**
+**POST /api/members**
 ```json
 {
   "token": "d89ad1c8-4567-41e9-8c5e-0987654321ab",
@@ -262,7 +262,7 @@ frontend/
 
 ### 4️⃣ Referrals — Indicações
 
-**POST /api/v1/referrals**
+**POST /api/referrals**
 ```json
 {
   "fromMemberId": "65c901a2f4f201c1b9c8d333",
@@ -286,7 +286,7 @@ frontend/
 
 ### 5️⃣ Healthcheck
 
-**GET /api/v1/health**
+**GET /api/health**
 ```json
 {
   "status": "ok",
