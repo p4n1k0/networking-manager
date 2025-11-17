@@ -1,5 +1,4 @@
 "use client";
-
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import api from "@/services/api";
@@ -8,21 +7,19 @@ import MemberForm from "@/components/modules/MemberForm";
 export default function MemberTokenPage() {
   const { token } = useParams();
   const router = useRouter();
-
   const [loading, setLoading] = useState(true);
-  const [valid, setValid] = useState(false);
   const [invite, setInvite] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    async function validate() {
+    if (!token) return;
+    (async () => {
       try {
         const res = await api.get(`/invites/${token}/validate`);
         if (res.data.valid) {
-          setValid(true);
           setInvite(res.data);
         } else {
-          setError(res.data.message || "Convite inválido.");
+          setError(res.data.message || "Convite inválido");
         }
       } catch (err) {
         console.error(err);
@@ -30,9 +27,7 @@ export default function MemberTokenPage() {
       } finally {
         setLoading(false);
       }
-    }
-
-    if (token) validate();
+    })();
   }, [token]);
 
   async function onSubmit(data) {
@@ -50,10 +45,7 @@ export default function MemberTokenPage() {
   return (
     <div className="max-w-2xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-4">Finalizar Cadastro</h1>
-      <p className="text-gray-600 mb-6">
-        Convite para: <strong>{invite.intentionEmail}</strong>
-      </p>
-
+      <p className="text-gray-600 mb-6">Convite para: <strong>{invite.intentionEmail}</strong></p>
       <MemberForm onSubmit={onSubmit} />
     </div>
   );

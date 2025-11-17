@@ -1,7 +1,7 @@
 import Invite from "../models/Invite.js";
 import Member from "../models/Member.js";
 import bcrypt from "bcryptjs";
-import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
 
 /**
  * @desc Cadastrar novo membro a partir de um convite válido
@@ -12,52 +12,82 @@ export const registerMember = async (req, res) => {
   try {
     const { token, name, email, phone, business, password, company, position, linkedin } = req.body;
 
-    // Check required fields
     if (!token || !name || !email || !phone || !business || !password) {
       return res.status(400).json({ error: "Campos obrigatórios faltando." });
     }
 
-    // Validate invite
     const invite = await Invite.findOne({ token });
     if (!invite) return res.status(404).json({ error: "Convite não encontrado" });
-
-    if (invite.status !== "valid" || invite.expiresAt < new Date()) {
+    if (invite.status !== "valid" || (invite.expiresAt && invite.expiresAt < new Date())) {
       return res.status(400).json({ error: "Convite inválido ou expirado" });
     }
 
-    // Check duplicate email
-    const existing = await Member.findOne({ email });
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const existing = await Member.findOne({ email: normalizedEmail });
     if (existing) return res.status(409).json({ error: "E-mail já cadastrado" });
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create member
     const member = await Member.create({
       name,
-      email: email.toLowerCase(),
+      email: normalizedEmail,
       phone,
       business,
       password: hashedPassword,
-      profile: { company, position, linkedin },
+      profile: { company: company || "", position: position || "", linkedin: linkedin || "" },
+      status: "active",
     });
 
-    res.status(201).json({
+    // Only mark invite as used AFTER successful creation
+    await Invite.updateOne({ token }, { $set: { status: "used" } });
+
+    return res.status(201).json({
       message: "Membro cadastrado com sucesso",
       memberId: member._id,
       status: member.status,
       joinedAt: member.joinedAt,
     });
+  } catch (err) {
+    console.error("Erro ao registrar membro:", err);
+    if (err?.code === 11000) {
+      return res.status(409).json({ error: "E-mail já cadastrado" });
+    }
+    return res.status(500).json({ error: "Erro interno do servidor" });
+  }
+};
 
-    // Mark invite as used
-    await Invite.updateOne(
-      { token },
-      { $set: { status: "used" } }
+/**
+ * @desc Logar membro
+ * @route POST /api/members/login
+ * @access Public
+ */
+export const memberLogin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Buscar membro ativo
+    const member = await Member.findOne({ email: email.toLowerCase(), status: "active" });
+    if (!member) {
+      return res.status(404).json({ message: "Membro não encontrado ou inativo" });
+    }
+
+    // Verificar senha
+    const passwordMatch = await bcrypt.compare(password, member.password);
+    if (!passwordMatch) {
+      return res.status(401).json({ message: "Senha incorreta" });
+    }
+
+    // Gera token
+    const token = jwt.sign(
+      { id: member._id, role: "member" },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
     );
 
-  } catch (error) {
-    console.error("Erro ao registrar membro:", error);
-    res.status(500).json({ error: "Erro interno do servidor" });
+    res.json({ token, member });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erro no login" });
   }
 };
 

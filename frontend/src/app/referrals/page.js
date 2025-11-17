@@ -1,25 +1,33 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import ReferralForm from "@/components/modules/ReferralForm";
 import ReferralList from "@/components/modules/ReferralList";
 
-/**
- * Página de Referrals
- * Mostra formulário e listas de indicações enviadas e recebidas
- */
 export default function ReferralsPage() {
-  const memberId = "65c901a2f4f201c1b9c8d333";
+  const [user, setUser] = useState(null);
+
+  // Garantir execução apenas no client
+  useEffect(() => {
+    const data = localStorage.getItem("user");
+    if (data) {
+      setUser(JSON.parse(data));
+    }
+  }, []);
+
+  if (!user) {
+    return <p className="p-4 text-center">Carregando...</p>;
+  }
 
   return (
     <main className="max-w-3xl mx-auto mt-10 space-y-8">
-      {/* Form para criar nova indicação */}
-      <ReferralForm memberId={memberId} />
+      <ReferralForm memberId={user._id} />
 
-      {/* Lista de indicações enviadas */}
-      <ReferralList memberId={memberId} type="sent" />
+      {/* Enviadas */}
+      <ReferralList memberId={user._id} type="sent" />
 
-      {/* Lista de indicações recebidas */}
-      <ReferralList memberId={memberId} type="received" />
+      {/* Recebidas */}
+      <ReferralList memberId={user._id} type="received" />
     </main>
   );
 }
