@@ -1,55 +1,76 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import api from "@/services/api";
-import { useRouter } from "next/navigation";
 
-export default function AdminLogin() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const router = useRouter();
+export default function AdminMembersPage() {
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleLogin = async () => {
-    setError("");
+  // Verifica token admin e aplica no axios
+  useEffect(() => {
+    const token = localStorage.getItem("adminToken");
+    if (!token) {
+      window.location.href = "/admin/members"; // redireciona se não logado
+      return;
+    }
+    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    loadMembers();
+  }, []);
 
+  // 🔹 Função para carregar membros
+  const loadMembers = async () => {
+    setLoading(true);
     try {
-      const res = await api.post("/admin/login", { email, password });
-
-      // 🎯 AQUI SALVA O TOKEN NO LOCALSTORAGE
-      localStorage.setItem("adminToken", res.data.token);
-
-      router.push("/admin/dashboard");
+      const res = await api.get("/members");
+      setMembers(res.data);
     } catch (err) {
-      setError("Credenciais inválidas.");
+      console.error(err);
+      alert("Erro ao carregar membros (token inválido ou sem permissões).");
+    } finally {
+      setLoading(false);
     }
   };
 
+  // 🔹 Remover membro
+  const deleteMember = async (memberId) => {
+    if (!confirm("Tem certeza que deseja remover este membro?")) return;
+    try {
+      await api.delete(`/members/${memberId}`);
+      loadMembers(); // recarrega lista
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao remover membro.");
+    }
+  };
+
+  if (loading) return <div className="p-6">Carregando membros...</div>;
+
   return (
-    <div className="max-w-sm mx-auto p-4">
-      <h2 className="text-xl font-semibold mb-4">Login Admin</h2>
+    <div className="p-8 max-w-4xl mx-auto">
+      <h1 className="text-3xl font-bold mb-6">👥 Gerenciamento de Membros</h1>
 
-      <input
-        className="w-full mb-2 p-2 border"
-        placeholder="Email"
-        onChange={(e) => setEmail(e.target.value)}
-      />
+      {members.length === 0 && <p>Nenhum membro encontrado.</p>}
 
-      <input
-        type="password"
-        className="w-full mb-2 p-2 border"
-        placeholder="Senha"
-        onChange={(e) => setPassword(e.target.value)}
-      />
+      <div className="space-y-4">
+        {members.map((member) => (
+          <div key={member._id} className="border p-4 rounded bg-gray-50 shadow-sm">
+            <p><b>Nome:</b> {member.name}</p>
+            <p><b>Email:</b> {member.email}</p>
+            <p><b>Telefone:</b> {member.phone}</p>
+            <p><b>Negócio:</b> {member.business}</p>
+            <p><b>Role:</b> {member.role}</p>
+            <p><b>Status:</b> {member.status}</p>
 
-      {error && <p className="text-red-500">{error}</p>}
-
-      <button
-        onClick={handleLogin}
-        className="w-full bg-blue-600 text-white py-2 mt-3"
-      >
-        Entrar
-      </button>
+            <button
+              onClick={() => deleteMember(member._id)}
+              className="mt-2 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+            >
+              🗑 Remover
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

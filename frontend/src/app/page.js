@@ -24,13 +24,6 @@ export default function Home() {
         >
           Painel Admin
         </Link>
-
-        <Link
-          href="/cadastro/teste-token"
-          className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-        >
-          Testar Cadastro
-        </Link>
       </div>
 
       <footer className="mt-12 text-sm text-gray-500">
