@@ -19,8 +19,10 @@ export default function ReferralForm({ memberId, onSuccess }) {
 
   // Garantir execução apenas no cliente
   useEffect(() => {
-    const stored = localStorage.getItem("token");
-    setToken(stored);
+    Promise.resolve().then(() => {
+      const stored = localStorage.getItem("memberToken");
+      setToken(stored);
+    });
   }, []);
 
   const mutation = useMutation({

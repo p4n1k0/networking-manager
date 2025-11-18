@@ -22,9 +22,19 @@ export default function Home() {
           href="/admin/login"
           className="px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition"
         >
-          Painel Admin
+          Admin
         </Link>
+
+        <Link
+          href="/member/login"
+          className="px-6 py-3 bg-green-800 text-white rounded-lg hover:bg-green-900 transition"
+        >
+          Membro
+        </Link>
+
       </div>
+
+
 
       <footer className="mt-12 text-sm text-gray-500">
         © {new Date().getFullYear()} Networking App
