@@ -10,11 +10,11 @@ import {
 
 import { verifyToken } from "../middlewares/authMiddleware.js";
 import { verifyAdmin } from "../middlewares/verifyAdmin.js";
-import { verifyMember } from "../middlewares/veifyMember.js";
+import { verifyMember } from "../middlewares/verifyMember.js";
 
 const router = express.Router();
 
-router.post("/", verifyMember, createReferral);
+router.post("/", verifyToken, createReferral);
 router.get("/member/:id", verifyToken, listReferralsByMember);
 router.get("/", verifyAdmin, listReferrals);
 router.patch("/:id/status", verifyAdmin, updateReferralStatus);

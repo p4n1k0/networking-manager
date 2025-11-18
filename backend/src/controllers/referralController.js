@@ -93,23 +93,16 @@ export const listReferrals = async (req, res) => {
  * @route GET /api/referrals
  */
 export const listReferralsByMember = async (req, res) => {
-  try {
-    const memberId = req.user.id;
-
-    const sent = await Referral.find({ fromMemberId: memberId })
-      .populate("toMemberId", "name email business")
-      .sort({ createdAt: -1 });
-
-    const received = await Referral.find({ toMemberId: memberId })
-      .populate("fromMemberId", "name email business")
-      .sort({ createdAt: -1 });
-
-    return res.json({ sent, received });
-
-  } catch (error) {
-    console.error("Erro ao listar indicações do membro:", error);
-    return res.status(500).json({ error: "Erro interno no servidor" });
+  const memberId = req.params.id;
+  if (req.user.role !== "admin" && req.user.id !== memberId) {
+    return res.status(403).json({ message: "Acesso negado." });
   }
+
+  const referrals = await Referral.find({ toMemberId: memberId })
+    .populate("fromMemberId", "name")
+    .populate("toMemberId", "name");
+
+  res.json(referrals);
 };
 
 
