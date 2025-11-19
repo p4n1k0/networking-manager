@@ -13,6 +13,8 @@ import MeetingForm from "@/components/modules/MeetingForm";
 export default function DashboardPage() {
   const [memberId, setMemberId] = useState("");
 
+  const isValidObjectId = (id) => /^[0-9a-fA-F]{24}$/.test(id);
+
   return (
     <div className="p-8 space-y-8">
       <h1 className="text-3xl font-bold text-gray-800">📊 Painel do Membro</h1>
@@ -21,29 +23,30 @@ export default function DashboardPage() {
         <label className="block text-sm font-medium text-gray-700 mb-2">
           ID do Membro
         </label>
+
         <input
           type="text"
           value={memberId}
           onChange={(e) => setMemberId(e.target.value)}
-          placeholder="Digite o ID do membro (ex: 12345)"
+          placeholder="Digite o ID do membro (ex: 65fa91b0af8c9d43e8177df8)"
           className="border w-full px-3 py-2 rounded-md mb-4"
         />
 
-        {!memberId && (
-          <p className="text-gray-500 text-sm">
-            ⚠️ Informe o ID do membro para visualizar seus dados.
+        {memberId && !isValidObjectId(memberId) && (
+          <p className="text-red-600 text-sm">
+            ❌ ID inválido — deve conter 24 caracteres hexadecimais.
           </p>
         )}
       </Card>
 
-      {memberId && (
+      {isValidObjectId(memberId) && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* === REFERRALS === */}
           <Card>
             <h2 className="text-xl font-semibold mb-4 text-gray-700">
               👥 Indicações
             </h2>
-            <ReferralForm memberId={memberId} onSuccess={() => {}} />
+            <ReferralForm memberId={memberId} />
             <div className="mt-4">
               <ReferralList memberId={memberId} />
             </div>
@@ -54,7 +57,7 @@ export default function DashboardPage() {
             <h2 className="text-xl font-semibold mb-4 text-gray-700">
               💰 Pagamentos
             </h2>
-            <PaymentForm memberId={memberId} onSuccess={() => {}} />
+            <PaymentForm memberId={memberId} />
             <div className="mt-4">
               <PaymentList memberId={memberId} />
             </div>
@@ -65,7 +68,7 @@ export default function DashboardPage() {
             <h2 className="text-xl font-semibold mb-4 text-gray-700">
               📅 Reuniões
             </h2>
-            <MeetingForm memberId={memberId} onSuccess={() => {}} />
+            <MeetingForm memberId={memberId} />
             <div className="mt-4">
               <MeetingList memberId={memberId} />
             </div>
@@ -74,7 +77,9 @@ export default function DashboardPage() {
       )}
 
       <div className="flex justify-end">
-        <Button onClick={() => window.location.reload()}>🔄 Atualizar Painel</Button>
+        <Button onClick={() => window.location.reload()}>
+          🔄 Atualizar Painel
+        </Button>
       </div>
     </div>
   );
