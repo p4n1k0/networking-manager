@@ -11,7 +11,7 @@ export default function MeetingForm({ memberId, onSuccess }) {
 
   const mutation = useMutation({
     mutationFn: async (data) => {
-      const res = await api.post("/v1/meetings", { memberId, ...data });
+      const res = await api.post("/meetings", { memberId, ...data });
       return res.data;
     },
     onSuccess: () => {

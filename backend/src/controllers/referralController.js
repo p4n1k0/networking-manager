@@ -89,19 +89,19 @@ export const listReferrals = async (req, res) => {
 
 
 /**
- * @desc Listar todas as indicações de um membro
- * @route GET /api/referrals
+ * @route GET /api/referrals/member/:id
+ * @desc Membro vê APENAS suas próprias indicações (enviadas + recebidas)
+ * @access Member ou Admin
  */
 export const listReferralsByMember = async (req, res) => {
   try {
     const memberId = req.params.id;
 
-    // Segurança: só o próprio membro ou admin pode ver
+    // Segurança: membro só vê o próprio ID
     if (req.user.role !== "admin" && req.user.id !== memberId) {
       return res.status(403).json({ message: "Acesso negado." });
     }
 
-    // Retorna enviadas + recebidas
     const referrals = await Referral.find({
       $or: [
         { fromMemberId: memberId },
@@ -112,7 +112,7 @@ export const listReferralsByMember = async (req, res) => {
       .populate("toMemberId", "name email")
       .sort({ createdAt: -1 });
 
-    res.json(referrals);
+    return res.json(referrals);
 
   } catch (error) {
     console.error("Erro ao listar indicações do membro:", error);

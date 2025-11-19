@@ -6,7 +6,6 @@ import {
     memberLogin,
 } from "../controllers/memberController.js";
 import { verifyAdmin } from "../middlewares/verifyAdmin.js";
-import { verifyMember } from "../middlewares/verifyMember.js";
 
 const router = express.Router();
 

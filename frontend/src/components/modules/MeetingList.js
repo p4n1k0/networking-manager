@@ -7,7 +7,7 @@ export default function MeetingList({ memberId }) {
   const { data = [], isLoading, error } = useQuery({
     queryKey: ["meetings", memberId],
     queryFn: async () => {
-      const res = await api.get(`/v1/meetings?memberId=${memberId}`);
+      const res = await api.get(`/meetings?memberId=${memberId}`);
       return res.data.items || res.data;
     },
   });
