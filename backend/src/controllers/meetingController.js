@@ -2,76 +2,57 @@ import Meeting from "../models/Meeting.js";
 import Member from "../models/Member.js";
 
 /**
- * @desc Criar uma nova reunião
- * @route POST /api/meetings
- */
-/**
- * Criar reunião 1:1 entre membros
+ * Criar reunião 1-a-1
  * POST /api/meetings
  */
 export const createMeeting = async (req, res) => {
   try {
-    const loggedMemberId = req.user.id;
-    const { partnerId, date, notes, location, durationMinutes } = req.body;
+    const { date, type, notes, members, location, durationMinutes } = req.body;
 
-    if (!partnerId || !date) {
-      return res.status(400).json({ error: "Campos obrigatórios ausentes." });
-    }
-
-    if (loggedMemberId === partnerId) {
+    if (!members || members.length !== 2) {
       return res.status(400).json({
-        error: "Você não pode criar uma reunião consigo mesmo.",
+        error: "Uma reunião 1-a-1 precisa de exatamente 2 membros."
       });
     }
 
-    // garante que existem
-    const partner = await Member.findById(partnerId);
-    if (!partner) {
-      return res.status(404).json({ error: "Membro convidado não existe." });
+    // garantir que os dois membros existem
+    const existingMembers = await Member.find({ _id: { $in: members } });
+    if (existingMembers.length !== 2) {
+      return res.status(404).json({ error: "Membro não encontrado." });
     }
-
-    // monta lista segura
-    const members = [loggedMemberId, partnerId];
 
     const meeting = await Meeting.create({
       date,
-      type: "one_to_one",
+      type,
       notes,
       members,
       location,
       durationMinutes,
     });
 
-    // atualiza estatísticas
-    await Member.updateMany(
-      { _id: { $in: members } },
-      { $inc: { "stats.meetingsAttended": 1 } }
-    );
-
     return res.status(201).json({
-      message: "Reunião 1 a 1 criada com sucesso",
+      message: "Reunião criada com sucesso",
       meeting,
     });
   } catch (error) {
     console.error("Erro ao criar reunião:", error);
-    res.status(500).json({ error: "Erro interno no servidor" });
+    res.status(500).json({ error: "Erro interno do servidor" });
   }
 };
 
 
 /**
- * Listar reuniões de um membro
+ * Listar reuniões por membro
  * GET /api/meetings/member/:id
  */
 export const listMeetingsByMember = async (req, res) => {
   try {
     const memberId = req.params.id;
 
-    if (!memberId) {
-      return res.status(400).json({ error: "ID do membro é obrigatório." });
-    }
+    if (!memberId)
+      return res.status(400).json({ error: "ID do membro obrigatório" });
 
-    // segurança: só o próprio membro ou admin pode ver
+    // segurança básica
     if (req.user.role !== "admin" && req.user.id !== memberId) {
       return res.status(403).json({ error: "Acesso negado." });
     }
@@ -82,8 +63,8 @@ export const listMeetingsByMember = async (req, res) => {
 
     return res.json(meetings);
   } catch (error) {
-    console.error("Erro ao listar reuniões do membro:", error);
-    return res.status(500).json({ error: "Erro interno do servidor" });
+    console.error("Erro ao listar reuniões:", error);
+    res.status(500).json({ error: "Erro interno do servidor" });
   }
 };
 
@@ -143,3 +124,108 @@ export const updateMeetingStatus = async (req, res) => {
   }
 };
 
+/**
+ * @desc Listar TODAS as reuniões
+ * @route GET /api/admin/meetings
+ * @access Admin
+ */
+export const adminListMeetings = async (req, res) => {
+  try {
+    const { memberId } = req.query;
+
+    const filter = memberId ? { members: memberId } : {};
+
+    const meetings = await Meeting.find(filter)
+      .populate("members", "name email")
+      .sort({ date: -1 });
+
+    res.json(meetings);
+
+  } catch (error) {
+    console.error("Erro ao listar reuniões (admin):", error);
+    res.status(500).json({ error: "Erro interno do servidor" });
+  }
+};
+
+/**
+ * @desc Atualizar dados da reunião (admin)
+ * @route PATCH /api/admin/meetings/:id
+ */
+export const adminUpdateMeeting = async (req, res) => {
+  try {
+    const meeting = await Meeting.findById(req.params.id);
+    if (!meeting) {
+      return res.status(404).json({ error: "Reunião não encontrada." });
+    }
+
+    const allowedFields = ["date", "notes", "location", "durationMinutes"];
+    
+    allowedFields.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        meeting[field] = req.body[field];
+      }
+    });
+
+    await meeting.save();
+
+    res.json({
+      message: "Reunião atualizada com sucesso",
+      meeting
+    });
+
+  } catch (error) {
+    console.error("Erro ao atualizar reunião:", error);
+    res.status(500).json({ error: "Erro interno no servidor" });
+  }
+};
+
+/**
+ * @desc Atualizar status
+ * @route PATCH /api/admin/meetings/:id/status
+ */
+export const updateMeetingAdminStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const validStatuses = ["scheduled", "checked_in", "missed"];
+
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ error: "Status inválido" });
+    }
+
+    const meeting = await Meeting.findById(req.params.id);
+    if (!meeting) return res.status(404).json({ error: "Reunião não encontrada" });
+
+    meeting.checkinStatus = status;
+    await meeting.save();
+
+    res.json({
+      message: "Status atualizado com sucesso",
+      meeting
+    });
+
+  } catch (error) {
+    console.error("Erro ao atualizar status da reunião:", error);
+    res.status(500).json({ error: "Erro interno" });
+  }
+};
+
+/**
+ * @desc Remover reunião
+ * @route DELETE /api/admin/meetings/:id
+ */
+export const deleteMeeting = async (req, res) => {
+  try {
+    const meeting = await Meeting.findById(req.params.id);
+    if (!meeting) {
+      return res.status(404).json({ error: "Reunião não encontrada." });
+    }
+
+    await meeting.deleteOne();
+
+    res.json({ message: "Reunião removida com sucesso" });
+
+  } catch (error) {
+    console.error("Erro ao remover reunião:", error);
+    res.status(500).json({ error: "Erro no servidor" });
+  }
+};

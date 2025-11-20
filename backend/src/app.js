@@ -33,6 +33,7 @@ app.use('/api/announcements', announcementRoutes);
 app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/admin/meetings', adminRoutes);
 
 // Middleware de erros
 app.use(errorHandler);

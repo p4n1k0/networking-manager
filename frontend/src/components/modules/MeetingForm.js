@@ -4,48 +4,98 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import api from "@/services/api";
 import Button from "@/components/ui/Button";
+import { useState } from "react";
 
 export default function MeetingForm({ memberId, onSuccess }) {
   const queryClient = useQueryClient();
   const { register, handleSubmit, reset } = useForm();
+  const [successMsg, setSuccessMsg] = useState("");
 
   const mutation = useMutation({
     mutationFn: async (data) => {
-      const res = await api.post("/meetings", { memberId, ...data });
-      return res.data;
+      return await api.post("/meetings", {
+        date: data.date,
+        type: "one_to_one",
+        notes: data.notes,
+        location: data.location,
+        durationMinutes: Number(data.durationMinutes),
+        members: [memberId, data.partnerId],
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["meetings"] });
+      queryClient.invalidateQueries({ queryKey: ["meetings", memberId] });
+
       reset();
+
+      // 🎉 MOSTRAR MENSAGEM DE SUCESSO POR 3 SEGUNDOS
+      setSuccessMsg("Reunião agendada com sucesso!");
+
+      setTimeout(() => setSuccessMsg(""), 3000);
+
       onSuccess?.();
     },
   });
 
-  const onSubmit = (data) => mutation.mutate(data);
-
   return (
     <form
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit((data) => mutation.mutate(data))}
       className="space-y-4 border rounded-lg p-4 bg-white shadow"
     >
       <div>
         <label className="block text-sm font-medium text-gray-700">
-          Título
+          ID do outro membro
         </label>
         <input
-          {...register("title", { required: true })}
+          {...register("partnerId", {
+            required: "ID do parceiro é obrigatório",
+            validate: v => /^[0-9a-fA-F]{24}$/.test(v) || "ID inválido",
+          })}
           className="w-full border px-3 py-2 rounded-md"
-          placeholder="Reunião com o cliente"
+          placeholder="65fa91b0af8c9d43e8177df8"
         />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700">
-          Data
+          Data da Reunião
         </label>
         <input
           type="datetime-local"
-          {...register("scheduledAt", { required: true })}
+          {...register("date", { required: true })}
+          className="w-full border px-3 py-2 rounded-md"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">
+          Local
+        </label>
+        <input
+          {...register("location")}
+          placeholder="Online ou Presencial"
+          className="w-full border px-3 py-2 rounded-md"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">
+          Duração (min)
+        </label>
+        <input
+          type="number"
+          defaultValue={60}
+          {...register("durationMinutes")}
+          className="w-full border px-3 py-2 rounded-md"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">
+          Notas
+        </label>
+        <textarea
+          {...register("notes")}
+          placeholder="Observações..."
           className="w-full border px-3 py-2 rounded-md"
         />
       </div>
@@ -53,6 +103,11 @@ export default function MeetingForm({ memberId, onSuccess }) {
       <Button type="submit" disabled={mutation.isPending}>
         {mutation.isPending ? "Agendando..." : "Agendar Reunião"}
       </Button>
+
+      {/* 🎉 MENSAGEM DE SUCESSO */}
+      {successMsg && (
+        <p className="text-green-600 text-sm mt-2">{successMsg}</p>
+      )}
     </form>
   );
 }

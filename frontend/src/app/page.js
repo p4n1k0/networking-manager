@@ -29,7 +29,7 @@ export default function Home() {
           href="/member/login"
           className="px-6 py-3 bg-green-800 text-white rounded-lg hover:bg-green-900 transition"
         >
-          Membro
+          Membros
         </Link>
 
       </div>
