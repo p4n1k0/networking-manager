@@ -1,39 +1,46 @@
 "use client";
 
+import Link from "next/link";
+import api from "@/services/api";
 import useMemberAuth from "@/components/hooks/useMemberAuth";
-import Card from "@/components/ui/Card";
-import ReferralList from "@/components/modules/ReferralList";
-import ReferralForm from "@/components/modules/ReferralForm";
-import MeetingList from "@/components/modules/MeetingList";
-import MeetingForm from "@/components/modules/MeetingForm";
 
 export default function MemberDashboard() {
     const member = useMemberAuth();
 
-    if (!member) return <p>Carregando...</p>;
+    if (!member) return null;
 
     return (
-        <div className="p-8 space-y-8">
-            <h1 className="text-3xl font-bold">📊 Painel do Membro</h1>
+        <div className="p-8 min-h-screen bg-gray-50">
+            <h1 className="text-2xl font-bold">
+                Bem-vindo, {member.name}!
+            </h1>
 
-            <p>Bem-vindo, {member.name}</p>
+            <p className="mt-2 text-gray-600">Você está autenticado como membro.</p>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <Card>
-                    <ReferralForm memberId={member._id} />
-                    <ReferralList memberId={member._id} />
-                </Card>
 
-                <Card>
-                    <h2 className="text-xl font-semibold mb-4 text-gray-700">
-                        📅 Reuniões
-                    </h2>
-                    <MeetingForm memberId={member._id} />
-                    <div className="mt-4">
-                        <MeetingList memberId={member._id} />
-                    </div>
-                </Card>
-            </div>
+            <h1 className="text-3xl font-bold mb-6">🔐 Painel de membros</h1>
+            {/* Links do menu */}
+            <ul className="mt-6 space-y-4">
+                <li>
+                    <Link
+                        href="/member/meetings"
+                        className="inline-block px-4 py-2 bg-purple-600 text-white rounded shadow hover:bg-purple-700"
+                    >
+                        Gerenciar Reuniões
+                    </Link>
+                </li>
+                <li>
+                    <Link
+                        href="/member/referrals"
+                        className="inline-block px-4 py-2 bg-purple-600 text-white rounded shadow hover:bg-purple-700"
+                    >
+                        Verificar Indicações
+                    </Link>
+                </li>
+
+            </ul>
         </div>
+
+
     );
 }

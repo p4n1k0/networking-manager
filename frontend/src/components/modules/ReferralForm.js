@@ -5,8 +5,9 @@ import { useMutation } from "@tanstack/react-query";
 import api from "@/services/api";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import { useState, useEffect } from "react";
 
-export default function ReferralForm({ onSuccess }) {
+export default function ReferralForm({ memberId, onSuccess }) {
   const {
     register,
     handleSubmit,
@@ -14,9 +15,33 @@ export default function ReferralForm({ onSuccess }) {
     formState: { errors }
   } = useForm();
 
+  const [token, setToken] = useState(null);
+
+  // Garantir execução apenas no cliente
+  useEffect(() => {
+    Promise.resolve().then(() => {
+      const stored = localStorage.getItem("memberToken");
+      setToken(stored);
+    });
+  }, []);
+
   const mutation = useMutation({
     mutationFn: async (data) => {
-      const res = await api.post("/referrals", data);
+      if (!token) {
+        throw new Error("Token não encontrado. Faça login novamente.");
+      }
+
+      const res = await api.post(
+        "/referrals",
+        {
+          fromMemberId: memberId,
+          ...data
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
       return res.data;
     },
     onSuccess: (data) => {
@@ -28,40 +53,59 @@ export default function ReferralForm({ onSuccess }) {
   const onSubmit = (data) => mutation.mutate(data);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="space-y-4 p-4 bg-white rounded-2xl shadow"
+    >
+      <h2 className="text-xl font-semibold mb-4">Nova Indicação</h2>
 
       <Input
         label="ID do Membro Indicado"
-        placeholder="Ex: 65fa91b0af8c9d43e8177df8"
-        {...register("toMemberId", {
-          required: "Campo obrigatório",
-          validate: (v) =>
-            /^[0-9a-fA-F]{24}$/.test(v) ||
-            "ID inválido — deve conter 24 caracteres hexadecimais"
-        })}
+        placeholder="Exemplo: 65fa91b0af8..."
+        {...register("toMemberId", { required: "Campo obrigatório" })}
         error={errors.toMemberId?.message}
       />
 
       <Input
-        label="Cliente"
+        label="Nome do Cliente"
+        placeholder="Ex: João da Silva"
         {...register("clientName", { required: "Campo obrigatório" })}
         error={errors.clientName?.message}
       />
 
-      <Input label="Tipo do Negócio" {...register("businessType")} />
+      <Input
+        label="Tipo de Negócio"
+        placeholder="Ex: Consultoria, Venda, Parceria"
+        {...register("businessType")}
+      />
 
-      <Input label="Descrição" {...register("description")} />
+      <Input
+        label="Descrição"
+        placeholder="Descreva brevemente a indicação"
+        {...register("description")}
+      />
 
-      <Button type="submit" disabled={mutation.isLoading}>
-        {mutation.isLoading ? "Enviando..." : "Enviar Indicação"}
-      </Button>
+      <div className="flex justify-end">
+        <Button type="submit" disabled={mutation.isLoading}>
+          {mutation.isLoading ? "Enviando..." : "Enviar Indicação"}
+        </Button>
+      </div>
 
-      {mutation.isError && (
-        <p className="text-red-600">{mutation.error?.response?.data?.error}</p>
+      {/* Mensagem de sucesso */}
+      {mutation.isSuccess && (
+        <p className="text-green-600 mt-2">
+          ✔ Indicação criada com sucesso!
+        </p>
       )}
 
-      {mutation.isSuccess && (
-        <p className="text-green-600">✔ Indicação criada!</p>
+      {/* Mensagem de erro real */}
+      {mutation.isError && (
+        <p className="text-red-600 text-sm mt-2">
+          Erro ao criar indicação:{" "}
+          {mutation.error?.response?.data?.error ||
+            mutation.error?.message ||
+            "Erro desconhecido"}
+        </p>
       )}
     </form>
   );

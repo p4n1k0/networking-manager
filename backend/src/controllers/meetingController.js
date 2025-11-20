@@ -67,7 +67,11 @@ export const listMeetingsByMember = async (req, res) => {
   try {
     const memberId = req.params.id;
 
-    // Segurança
+    if (!memberId) {
+      return res.status(400).json({ error: "ID do membro é obrigatório." });
+    }
+
+    // segurança: só o próprio membro ou admin pode ver
     if (req.user.role !== "admin" && req.user.id !== memberId) {
       return res.status(403).json({ error: "Acesso negado." });
     }
@@ -78,11 +82,10 @@ export const listMeetingsByMember = async (req, res) => {
 
     return res.json(meetings);
   } catch (error) {
-    console.error("Erro ao listar reuniões:", error);
-    res.status(500).json({ error: "Erro interno do servidor" });
+    console.error("Erro ao listar reuniões do membro:", error);
+    return res.status(500).json({ error: "Erro interno do servidor" });
   }
 };
-
 
 /**
  * @desc Fazer check-in em uma reunião

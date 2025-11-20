@@ -7,9 +7,10 @@ export default function MeetingList({ memberId }) {
   const { data = [], isLoading, error } = useQuery({
     queryKey: ["meetings", memberId],
     queryFn: async () => {
-      const res = await api.get(`/meetings?memberId=${memberId}`);
-      return res.data.items || res.data;
+      const res = await api.get(`/meetings/member/${memberId}`);
+      return res.data;
     },
+    enabled: !!memberId,
   });
 
   if (isLoading) return <p>Carregando reuniões...</p>;
@@ -22,12 +23,14 @@ export default function MeetingList({ memberId }) {
       ) : (
         data.map((meeting) => (
           <div
-            key={meeting.id}
+            key={meeting._id}
             className="flex justify-between items-center border-b py-2"
           >
-            <span className="font-medium">{meeting.title}</span>
+            <span className="font-medium">
+              {meeting.notes || "Reunião 1 a 1"}
+            </span>
             <span className="text-sm text-gray-500">
-              {new Date(meeting.scheduledAt).toLocaleString("pt-BR")}
+              {new Date(meeting.date).toLocaleString("pt-BR")}
             </span>
           </div>
         ))
