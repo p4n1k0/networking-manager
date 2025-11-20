@@ -16,7 +16,8 @@ api.interceptors.request.use((config) => {
       "/admin",
       "/intents",
       "/members",        // rotas administrativas
-      "/referrals",      // lista completa ou alterar status
+      "/referrals",
+      "/payments"    // lista completa ou alterar status
     ];
 
     // Se a rota é 100% administrativa, força adminToken

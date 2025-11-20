@@ -37,6 +37,14 @@ export default function MemberDashboard() {
                         Verificar Indicações
                     </Link>
                 </li>
+                <li>
+                    <Link
+                        href="/member/payments"
+                        className="inline-block px-4 py-2 bg-purple-600 text-white rounded shadow hover:bg-purple-700"
+                    >
+                        💳 Pagamentos
+                    </Link>
+                </li>
 
             </ul>
         </div>
