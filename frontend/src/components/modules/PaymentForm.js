@@ -13,7 +13,7 @@ export default function PaymentForm({ memberId, onSuccess }) {
 
   const mutation = useMutation({
     mutationFn: async (data) => {
-      const res = await api.post("/v1/payments", { memberId, ...data });
+      const res = await api.post("/payments", { memberId, ...data });
       return res.data;
     },
     onSuccess: () => {

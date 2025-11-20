@@ -8,7 +8,7 @@ export default function PaymentList({ memberId }) {
   const { data: payments = [], isLoading, error } = useQuery({
     queryKey: ["payments", memberId],
     queryFn: async () => {
-      const res = await api.get(`/v1/payments${memberId ? `?memberId=${memberId}` : ""}`);
+      const res = await api.get(`/payments${memberId ? `?memberId=${memberId}` : ""}`);
       return res.data.items || res.data;
     },
   });
