@@ -8,13 +8,12 @@ import {
   listOverduePayments,
 } from "../controllers/paymentController.js";
 import { verifyAdmin } from "../middlewares/verifyAdmin.js";
-import { verifyMember } from "../middlewares/verifyMember.js";
-
+import { verifyToken } from "../middlewares/authMiddleware.js";
 const router = express.Router();
 
-router.post("/", createPayment);
+router.post("/", verifyToken, createPayment);
 router.get("/", verifyAdmin, listPayments);
-router.get("/me", listMyPayments);
+router.get("/me", verifyToken, listMyPayments);
 router.get("/overdue", verifyAdmin, listOverduePayments);
 router.patch("/:id/pay", verifyAdmin, markAsPaid);
 router.patch("/:id/status", verifyAdmin, updateStatus);

@@ -10,7 +10,7 @@ export default function AdminPaymentsPage() {
   const { data = [], isLoading, error, refetch } = useQuery({
     queryKey: ["adminPayments", memberId],
     queryFn: async () => {
-      const res = await api.get("/payments", {
+      const res = await api.get("/admin/payments", {
         params: memberId ? { memberId } : {},
       });
       return res.data;

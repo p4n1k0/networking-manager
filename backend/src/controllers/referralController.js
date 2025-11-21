@@ -95,11 +95,14 @@ export const listReferrals = async (req, res) => {
  */
 export const listReferralsByMember = async (req, res) => {
   try {
+    const requester = req.user; // vem do verifyToken
     const memberId = req.params.id;
 
-    // Segurança: membro só vê o próprio ID
-    if (req.user.role !== "admin" && req.user.id !== memberId) {
-      return res.status(403).json({ message: "Acesso negado." });
+    // 🔥 Membro só pode ver as PRÓPRIAS indicações
+    if (requester.role !== "admin" && requester.id !== memberId) {
+      return res.status(403).json({
+        error: "Você não pode acessar indicações de outro membro"
+      });
     }
 
     const referrals = await Referral.find({
@@ -107,16 +110,11 @@ export const listReferralsByMember = async (req, res) => {
         { fromMemberId: memberId },
         { toMemberId: memberId }
       ]
-    })
-      .populate("fromMemberId", "name email")
-      .populate("toMemberId", "name email")
-      .sort({ createdAt: -1 });
+    }).populate("fromMemberId toMemberId");
 
-    return res.json(referrals);
-
-  } catch (error) {
-    console.error("Erro ao listar indicações do membro:", error);
-    res.status(500).json({ error: "Erro interno do servidor" });
+    res.json(referrals);
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao carregar indicações" });
   }
 };
 

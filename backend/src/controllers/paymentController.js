@@ -2,24 +2,26 @@ import Payment from "../models/Payment.js";
 import Member from "../models/Member.js";
 
 /**
- * @desc Criar novo pagamento (membro logado)
- * @route POST /api/payments
- * @access Member
+ * Criar pagamento
+ * - Membro logado: cria para si mesmo
+ * - Admin: cria para outro membro, precisa enviar memberId
  */
 export const createPayment = async (req, res) => {
   try {
-    const memberId = req.user.id; // sempre o membro logado
-    const { amount, dueDate, method, notes } = req.body;
+    const { amount, dueDate, method, notes, memberId } = req.body;
 
-    if (!amount || !dueDate) {
-      return res.status(400).json({ error: "Valor e data de vencimento são obrigatórios." });
+    let targetMemberId = memberId;
+
+    // Se não for admin, ignora qualquer memberId enviado
+    if (!req.user.isAdmin) {
+      targetMemberId = req.user.id;
     }
 
-    const member = await Member.findById(memberId);
+    const member = await Member.findById(targetMemberId);
     if (!member) return res.status(404).json({ error: "Membro não encontrado" });
 
     const payment = await Payment.create({
-      member: memberId,
+      member: targetMemberId,
       amount,
       dueDate,
       method,
@@ -34,19 +36,15 @@ export const createPayment = async (req, res) => {
 };
 
 /**
- * @desc Listar todos os pagamentos (admin) ou por membro (query)
- * @route GET /api/payments
+ * Admin: listar pagamentos de qualquer membro
  */
 export const listPayments = async (req, res) => {
   try {
+    if (!req.user.isAdmin) return res.status(403).json({ error: "Acesso negado" });
+
     const { memberId } = req.query;
-
     const filter = memberId ? { member: memberId } : {};
-
-    const payments = await Payment.find(filter)
-      .populate("member", "name email")
-      .sort({ dueDate: -1 });
-
+    const payments = await Payment.find(filter).populate("member", "name email").sort({ dueDate: -1 });
     res.json(payments);
   } catch (error) {
     console.error("Erro ao listar pagamentos:", error);
@@ -55,16 +53,12 @@ export const listPayments = async (req, res) => {
 };
 
 /**
- * @desc Listar pagamentos do membro logado
- * @route GET /api/payments/me
+ * Listar pagamentos do membro logado
  */
 export const listMyPayments = async (req, res) => {
   try {
     const memberId = req.user.id;
-
-    const payments = await Payment.find({ member: memberId })
-      .sort({ dueDate: 1 });
-
+    const payments = await Payment.find({ member: memberId }).sort({ dueDate: 1 });
     res.json(payments);
   } catch (error) {
     console.error("Erro ao listar pagamentos pessoais:", error);
@@ -145,6 +139,25 @@ export const listOverduePayments = async (req, res) => {
     res.json(overdue);
   } catch (error) {
     console.error("Erro ao listar atrasados:", error);
+    res.status(500).json({ error: "Erro interno do servidor" });
+  }
+};
+
+
+/** * @desc Listar todos os pagamentos (admin)
+ * @route GET /api/admin/payments
+ * @access Admin
+ */
+export const adminListPayments = async (req, res) => {
+  try {
+    if (!req.user.isAdmin) return res.status(403).json({ error: "Acesso negado" });
+
+    const { memberId } = req.query;
+    const filter = memberId ? { member: memberId } : {};
+    const payments = await Payment.find(filter).populate("member", "name email").sort({ dueDate: -1 });
+    res.json(payments);
+  } catch (error) {
+    console.error("Erro ao listar pagamentos (admin):", error);
     res.status(500).json({ error: "Erro interno do servidor" });
   }
 };

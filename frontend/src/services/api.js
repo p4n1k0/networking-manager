@@ -9,24 +9,10 @@ api.interceptors.request.use((config) => {
     const memberToken = localStorage.getItem("memberToken");
     const adminToken = localStorage.getItem("adminToken");
 
-    let tokenToUse = memberToken; // padrão = membro
+    let tokenToUse = memberToken; // padrão: membro
 
-    // 🔐 1. Rotas ADMIN obrigam adminToken
-    const adminRoutes = [
-      "/admin",
-      "/intents",
-      "/members",        // rotas administrativas
-      "/referrals",
-      "/payments"    // lista completa ou alterar status
-    ];
-
-    // Se a rota é 100% administrativa, força adminToken
-    if (adminRoutes.some((r) => config.url.startsWith(r))) {
-      tokenToUse = adminToken || memberToken;
-    }
-
-    // 🔥 2. PATCH /referrals/:id/status → precisa ser admin
-    if (config.url.includes("/referrals/") && config.method === "patch") {
+    // Rotas 100% de admin → começam com /admin
+    if (config.url.startsWith("/admin")) {
       tokenToUse = adminToken || memberToken;
     }
 

@@ -13,9 +13,9 @@ export const verifyMember = (req, res, next) => {
             return res.status(403).json({ message: "Acesso negado (somente membros)" });
         }
 
-        req.member = decoded;
+        req.member = decoded; // contém id, email, role...
         next();
     } catch (err) {
-        res.status(401).json({ message: "Token inválido" });
+        return res.status(401).json({ message: "Token inválido" });
     }
 };
