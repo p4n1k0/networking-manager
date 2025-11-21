@@ -5,21 +5,19 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/services/api";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import { formatCurrency } from "@/utils/formatCurrency";
 
-export default function PaymentForm({ memberId, onSuccess }) {
-  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+export default function PaymentForm() {
+  const { register, handleSubmit, reset } = useForm();
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
     mutationFn: async (data) => {
-      const res = await api.post("/payments", { memberId, ...data });
-      return res.data;
+      // 🔥 sempre cria pagamento para o usuário logado
+      return api.post("/payments", data);
     },
     onSuccess: () => {
       reset();
-      queryClient.invalidateQueries({ queryKey: ["payments", memberId] });
-      onSuccess?.();
+      queryClient.invalidateQueries(["myPayments"]);
     },
   });
 
@@ -29,49 +27,22 @@ export default function PaymentForm({ memberId, onSuccess }) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 bg-white p-4 rounded-2xl shadow">
-      <h2 className="text-xl font-semibold mb-4">Registrar Pagamento</h2>
+    <form onSubmit={handleSubmit(onSubmit)} className="p-6 bg-white rounded shadow space-y-4">
+      <h2 className="text-xl font-semibold">Registrar Pagamento</h2>
 
-      <Input
-        label="Descrição"
-        placeholder="Comissão sobre indicação"
-        {...register("description", { required: "Campo obrigatório" })}
-        error={errors.description?.message}
-      />
+      <Input type="number" step="0.01" label="Valor" {...register("amount", { required: true })} />
+      <Input type="date" label="Vencimento" {...register("dueDate", { required: true })} />
 
-      <Input
-        type="number"
-        step="0.01"
-        label="Valor (R$)"
-        placeholder="Ex: 230.50"
-        {...register("amount", { required: "Campo obrigatório" })}
-        error={errors.amount?.message}
-      />
+      <select {...register("method")} className="border p-2 rounded w-full">
+        <option value="pix">PIX</option>
+        <option value="boleto">Boleto</option>
+        <option value="cartao">Cartão</option>
+        <option value="transferencia">Transferência</option>
+      </select>
 
-      <Input
-        label="Status"
-        placeholder="pending, paid ou cancelled"
-        {...register("status", { required: "Campo obrigatório" })}
-        error={errors.status?.message}
-      />
+      <Input label="Observações" {...register("notes")} />
 
-      <div className="flex justify-end">
-        <Button type="submit" disabled={mutation.isLoading}>
-          {mutation.isLoading ? "Salvando..." : "Registrar Pagamento"}
-        </Button>
-      </div>
-
-      {mutation.isSuccess && (
-        <p className="text-green-600 text-sm mt-2">
-          ✅ Pagamento registrado com sucesso!
-        </p>
-      )}
-
-      {mutation.isError && (
-        <p className="text-red-600 text-sm mt-2">
-          ⚠️ Erro ao registrar pagamento.
-        </p>
-      )}
+      <Button type="submit">Registrar</Button>
     </form>
   );
 }

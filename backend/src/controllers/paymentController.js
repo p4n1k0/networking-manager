@@ -2,12 +2,18 @@ import Payment from "../models/Payment.js";
 import Member from "../models/Member.js";
 
 /**
- * @desc Criar novo pagamento
+ * @desc Criar novo pagamento (membro logado)
  * @route POST /api/payments
+ * @access Member
  */
 export const createPayment = async (req, res) => {
   try {
-    const { memberId, amount, dueDate, method, notes } = req.body;
+    const memberId = req.user.id; // sempre o membro logado
+    const { amount, dueDate, method, notes } = req.body;
+
+    if (!amount || !dueDate) {
+      return res.status(400).json({ error: "Valor e data de vencimento são obrigatórios." });
+    }
 
     const member = await Member.findById(memberId);
     if (!member) return res.status(404).json({ error: "Membro não encontrado" });
@@ -28,12 +34,13 @@ export const createPayment = async (req, res) => {
 };
 
 /**
- * @desc Listar pagamentos (opcional: filtrar por membro)
+ * @desc Listar todos os pagamentos (admin) ou por membro (query)
  * @route GET /api/payments
  */
 export const listPayments = async (req, res) => {
   try {
     const { memberId } = req.query;
+
     const filter = memberId ? { member: memberId } : {};
 
     const payments = await Payment.find(filter)
@@ -43,6 +50,24 @@ export const listPayments = async (req, res) => {
     res.json(payments);
   } catch (error) {
     console.error("Erro ao listar pagamentos:", error);
+    res.status(500).json({ error: "Erro interno do servidor" });
+  }
+};
+
+/**
+ * @desc Listar pagamentos do membro logado
+ * @route GET /api/payments/me
+ */
+export const listMyPayments = async (req, res) => {
+  try {
+    const memberId = req.user.id;
+
+    const payments = await Payment.find({ member: memberId })
+      .sort({ dueDate: 1 });
+
+    res.json(payments);
+  } catch (error) {
+    console.error("Erro ao listar pagamentos pessoais:", error);
     res.status(500).json({ error: "Erro interno do servidor" });
   }
 };
@@ -68,30 +93,42 @@ export const markAsPaid = async (req, res) => {
 };
 
 /**
- * @desc Atualizar status manualmente (caso necessário)
+ * @desc Atualizar status manualmente
  * @route PATCH /api/payments/:id/status
  */
-export const updateStatus = async (req, res) => {
+export async function updateStatus(req, res) {
   try {
+    const { id } = req.params;
     const { status } = req.body;
-    const valid = ["pending", "paid", "overdue"];
-    if (!valid.includes(status)) {
-      return res.status(400).json({ error: "Status inválido" });
+
+    if (!["pending", "paid", "overdue"].includes(status)) {
+      return res.status(400).json({ error: "Status inválido." });
     }
 
-    const payment = await Payment.findById(req.params.id);
-    if (!payment) return res.status(404).json({ error: "Pagamento não encontrado" });
+    const payment = await Payment.findById(id);
+
+    if (!payment) {
+      return res.status(404).json({ error: "Pagamento não encontrado." });
+    }
 
     payment.status = status;
-    if (status === "paid") payment.paidAt = new Date();
+
+    if (status === "paid") {
+      payment.paidAt = new Date();
+    }
+
+    if (status !== "paid") {
+      payment.paidAt = null;
+    }
+
     await payment.save();
 
-    res.json({ message: "Status atualizado com sucesso", payment });
+    return res.json({ message: "Status atualizado com sucesso!", payment });
   } catch (error) {
-    console.error("Erro ao atualizar status:", error);
-    res.status(500).json({ error: "Erro interno do servidor" });
+    console.error(error);
+    return res.status(500).json({ error: "Erro ao atualizar status." });
   }
-};
+}
 
 /**
  * @desc Listar pagamentos atrasados
@@ -107,7 +144,7 @@ export const listOverduePayments = async (req, res) => {
 
     res.json(overdue);
   } catch (error) {
-    console.error("Erro ao listar pagamentos atrasados:", error);
+    console.error("Erro ao listar atrasados:", error);
     res.status(500).json({ error: "Erro interno do servidor" });
   }
 };
