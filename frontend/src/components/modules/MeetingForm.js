@@ -4,12 +4,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import api from "@/services/api";
 import Button from "@/components/ui/Button";
-import { useState } from "react";
 
 export default function MeetingForm({ memberId, onSuccess }) {
   const queryClient = useQueryClient();
   const { register, handleSubmit, reset } = useForm();
-  const [successMsg, setSuccessMsg] = useState("");
 
   const mutation = useMutation({
     mutationFn: async (data) => {
@@ -24,15 +22,8 @@ export default function MeetingForm({ memberId, onSuccess }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["meetings", memberId] });
-
       reset();
-
-      // 🎉 MOSTRAR MENSAGEM DE SUCESSO POR 3 SEGUNDOS
-      setSuccessMsg("Reunião agendada com sucesso!");
-
-      setTimeout(() => setSuccessMsg(""), 3000);
-
-      onSuccess?.();
+      onSuccess?.(); // <-- deixa o parent tratar a mensagem
     },
   });
 
@@ -103,11 +94,6 @@ export default function MeetingForm({ memberId, onSuccess }) {
       <Button type="submit" disabled={mutation.isPending}>
         {mutation.isPending ? "Agendando..." : "Agendar Reunião"}
       </Button>
-
-      {/* 🎉 MENSAGEM DE SUCESSO */}
-      {successMsg && (
-        <p className="text-green-600 text-sm mt-2">{successMsg}</p>
-      )}
     </form>
   );
 }

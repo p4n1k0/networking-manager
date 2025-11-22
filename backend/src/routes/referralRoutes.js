@@ -16,7 +16,7 @@ const router = express.Router();
 router.post("/", verifyToken, createReferral);
 router.get("/member/:id", verifyToken, listReferralsByMember);
 router.get("/", verifyAdmin, listReferrals);
-router.patch("/:id/status", verifyAdmin, updateReferralStatus);
+router.patch("/:id/status", verifyToken, updateReferralStatus);
 router.patch("/:id/value", verifyAdmin, updateReferralValue);
 router.patch("/:id/feedback", verifyToken, updateReferralFeedback);
 

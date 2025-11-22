@@ -3,20 +3,16 @@ import Invite from "../models/Invite.js";
 import crypto from "crypto";
 
 /**
- * @desc Criar uma nova intenção de participação
- * @route POST /api/intents
- * @access Public
+ * Criar uma nova intenção
  */
 export const createIntent = async (req, res) => {
   try {
     const { name, email, phone, business, message } = req.body;
 
-    // Validação simples
     if (!name || !email || !phone || !business) {
       return res.status(400).json({ error: "Campos obrigatórios ausentes" });
     }
 
-    // Cria e salva no banco
     const intent = await Intent.create({
       name,
       email,
@@ -24,7 +20,6 @@ export const createIntent = async (req, res) => {
       business,
       message,
       status: "pending",
-      createdAt: new Date(),
     });
 
     res.status(201).json(intent);
@@ -35,9 +30,7 @@ export const createIntent = async (req, res) => {
 };
 
 /**
- * @desc Listar todas as intenções
- * @route GET /api/intents
- * @access Admin
+ * Listar intenções
  */
 export const listIntents = async (req, res) => {
   try {
@@ -50,9 +43,7 @@ export const listIntents = async (req, res) => {
 };
 
 /**
- * @desc Buscar uma intenção específica
- * @route GET /api/intents/:id
- * @access Admin
+ * Buscar uma intenção específica
  */
 export const getIntentById = async (req, res) => {
   try {
@@ -68,9 +59,7 @@ export const getIntentById = async (req, res) => {
 };
 
 /**
- * @desc Excluir uma intenção
- * @route DELETE /api/intents/:id
- * @access Admin
+ * Excluir intenção
  */
 export const deleteIntent = async (req, res) => {
   try {
@@ -78,6 +67,10 @@ export const deleteIntent = async (req, res) => {
     if (!intent) {
       return res.status(404).json({ error: "Intent não encontrada" });
     }
+
+    // Remove convites associados
+    await Invite.deleteMany({ intentionId: req.params.id });
+
     res.json({ message: "Intent removida com sucesso" });
   } catch (error) {
     console.error("Erro ao excluir intent:", error);
@@ -86,39 +79,51 @@ export const deleteIntent = async (req, res) => {
 };
 
 /**
- * @desc Atualizar status de uma intenção
- * @route PATCH /api/intents/:id
- * @access Admin
+ * Atualizar status de intenção
  */
 export const updateIntentStatus = async (req, res) => {
   try {
     const { status } = req.body;
     const allowed = ["approved", "rejected", "pending"];
-    if (!allowed.includes(status)) return res.status(400).json({ error: "Status inválido" });
+    if (!allowed.includes(status)) {
+      return res.status(400).json({ error: "Status inválido" });
+    }
 
     const intent = await Intent.findById(req.params.id);
     if (!intent) return res.status(404).json({ error: "Intent não encontrada" });
 
     intent.status = status;
-    // opcional: logged admin id (se existir auth)
     if (req.adminId) intent.approvedBy = req.adminId;
     await intent.save();
 
     if (status === "approved") {
-      const token = crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString("hex");
+      // Verificar convites ativos
+      const alreadyInvite = await Invite.findOne({
+        email: intent.email.toLowerCase(),
+        status: "valid",
+      });
+
+      if (alreadyInvite) {
+        return res.json({ intent, invite: alreadyInvite });
+      }
+
+      // Criar novo token seguro
+      const token = crypto.randomBytes(32).toString("hex");
+
       const invite = await Invite.create({
         token,
         intentionId: intent._id,
         email: intent.email.toLowerCase(),
         status: "valid",
-        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30), // 30 dias
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 dias
       });
+
       return res.json({ intent, invite });
     }
 
-    return res.json({ intent });
+    res.json({ intent });
   } catch (error) {
     console.error("Erro ao atualizar intent:", error);
-    return res.status(500).json({ error: "Erro interno" });
+    res.status(500).json({ error: "Erro interno" });
   }
 };

@@ -1,46 +1,52 @@
 "use client";
 
 import { useState } from "react";
-import Card from "@/components/ui/Card";
+import useMemberAuth from "@/components/hooks/useMemberAuth";
 import MeetingForm from "@/components/modules/MeetingForm";
 import MeetingList from "@/components/modules/MeetingList";
+import Card from "@/components/ui/Card";
+import Button from "@/components/ui/Button";
 
 export default function MeetingsPage() {
-  const [memberId, setMemberId] = useState("");
+  const member = useMemberAuth();
+  const [showForm, setShowForm] = useState(false);
+  const [refresh, setRefresh] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
-  const isValidObjectId = (id) => /^[0-9a-fA-F]{24}$/.test(id);
+  if (member === undefined) return <p>Carregando...</p>;
+  if (member === null) return null;
+
+  const handleSuccess = () => {
+    setShowForm(false);
+    setRefresh((prev) => !prev);
+
+    setSuccessMessage("🎉 Reunião agendada com sucesso!");
+    setTimeout(() => setSuccessMessage(""), 4000);
+  };
 
   return (
     <div className="p-8 space-y-6">
-      <h1 className="text-2xl font-semibold text-gray-800">📅 Reuniões</h1>
+      {successMessage && (
+        <div className="p-3 bg-green-100 border border-green-300 text-green-800 rounded">
+          {successMessage}
+        </div>
+      )}
+
+      <div className="flex justify-between items-center">
+        <Button onClick={() => setShowForm(!showForm)}>
+          {showForm ? "Fechar" : "Agendar Reunião"}
+        </Button>
+      </div>
+
+      {showForm && (
+        <Card>
+          <MeetingForm memberId={member._id} onSuccess={handleSuccess} />
+        </Card>
+      )}    
 
       <Card>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          ID do Membro
-        </label>
-
-        <input
-          type="text"
-          value={memberId}
-          onChange={(e) => setMemberId(e.target.value)}
-          placeholder="Ex: 65fa91b0af8c9d43e8177df8"
-          className="border w-full px-3 py-2 rounded-md mb-4"
-        />
-
-        {memberId && !isValidObjectId(memberId) && (
-          <p className="text-red-600 text-sm">
-            ❌ ID inválido — deve conter 24 caracteres hexadecimais.
-          </p>
-        )}
-
-        {isValidObjectId(memberId) && (
-          <div className="mt-6">
-            <MeetingForm memberId={memberId} onSuccess={() => { }} />
-            <h2 className="text-lg font-semibold mb-2">Reuniões do membro</h2>
-            <MeetingList memberId={memberId} />
-
-          </div>
-        )}
+        <h1 className="text-2xl font-bold mb-4">📅 Reuniões de {member.name}</h1>
+        <MeetingList memberId={member._id} refresh={refresh} />
       </Card>
     </div>
   );

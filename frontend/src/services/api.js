@@ -20,7 +20,7 @@ api.interceptors.request.use((config) => {
     if (!tokenToUse) console.warn("Rota administrativa sem adminToken!");
   }
   // 🔹 Rotas de membro → somente memberToken
-  else if (config.url.startsWith("/payments/me")) {
+  else if (config.url.startsWith("/payments/me") || config.url.startsWith("/meetings/me") || config.url.startsWith("/referrals/me")) {
     tokenToUse = memberToken;
     if (!tokenToUse) console.warn("Rota de membro sem memberToken!");
   }

@@ -6,55 +6,95 @@ import jwt from "jsonwebtoken";
 /**
  * @desc Cadastrar novo membro a partir de um convite válido
  * @route POST /api/members
- * @access Público (com token válido)
+ * @access Público (com token de convite)
  */
 export const registerMember = async (req, res) => {
   try {
-    const { token, name, email, phone, business, password, company, position, linkedin } = req.body;
+    const {
+      token,
+      name,
+      email,
+      phone,
+      business,
+      password,
+      company,
+      position,
+      linkedin,
+    } = req.body;
 
+    // 📌 1. Verificação de campos obrigatórios
     if (!token || !name || !email || !phone || !business || !password) {
       return res.status(400).json({ error: "Campos obrigatórios faltando." });
     }
 
+    // 📌 2. Verificação do convite
     const invite = await Invite.findOne({ token });
-    if (!invite) return res.status(404).json({ error: "Convite não encontrado" });
-    if (invite.status !== "valid" || (invite.expiresAt && invite.expiresAt < new Date())) {
-      return res.status(400).json({ error: "Convite inválido ou expirado" });
-    }
+    if (!invite)
+      return res.status(404).json({ error: "Convite não encontrado." });
 
+    if (invite.status !== "valid")
+      return res.status(400).json({ error: "Convite já foi usado ou está inválido." });
+
+    if (invite.expiresAt && invite.expiresAt < new Date())
+      return res.status(400).json({ error: "Convite expirado." });
+
+    // 📌 3. Normalização do e-mail
     const normalizedEmail = String(email).trim().toLowerCase();
     const existing = await Member.findOne({ email: normalizedEmail });
-    if (existing) return res.status(409).json({ error: "E-mail já cadastrado" });
 
+    if (existing)
+      return res.status(409).json({ error: "E-mail já cadastrado." });
+
+    // 📌 4. Hash da senha
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // 📌 5. Criação do membro
     const member = await Member.create({
       name,
       email: normalizedEmail,
       phone,
       business,
       password: hashedPassword,
-      profile: { company: company || "", position: position || "", linkedin: linkedin || "" },
+      profile: {
+        company: company || "",
+        position: position || "",
+        linkedin: linkedin || "",
+      },
+      role: "member",
       status: "active",
     });
 
-    // Only mark invite as used AFTER successful creation
-    await Invite.updateOne({ token }, { $set: { status: "used" } });
+    // 📌 6. Atualiza convite somente após sucesso
+    await Invite.updateOne(
+      { token },
+      {
+        $set: {
+          status: "used",
+          usedBy: member._id,
+          usedAt: new Date(),
+        },
+      }
+    );
 
     return res.status(201).json({
-      message: "Membro cadastrado com sucesso",
+      message: "Membro cadastrado com sucesso.",
       memberId: member._id,
-      status: member.status,
       joinedAt: member.joinedAt,
     });
   } catch (err) {
     console.error("Erro ao registrar membro:", err);
+
+    // 📌 Tratamento de duplicidade Mongo
     if (err?.code === 11000) {
-      return res.status(409).json({ error: "E-mail já cadastrado" });
+      return res.status(409).json({ error: "E-mail já cadastrado." });
     }
-    return res.status(500).json({ error: "Erro interno do servidor" });
+
+    return res
+      .status(500)
+      .json({ error: "Erro interno do servidor. Tente novamente mais tarde." });
   }
 };
+
 
 /**
  * @desc Logar membro

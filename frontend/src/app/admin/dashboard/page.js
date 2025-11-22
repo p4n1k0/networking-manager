@@ -28,7 +28,7 @@ export default function AdminDashboard() {
     setLoadingStats(true);
     try {
       const membersRes = await api.get("/members");
-      const referralsRes = await api.get("/referrals?month=current");
+      const referralsRes = await api.get("/admin/referrals?month=current");
       setStats({
         totalMembers: membersRes.data.length,
         totalReferrals: referralsRes.data.length,
@@ -97,22 +97,6 @@ export default function AdminDashboard() {
             className="inline-block px-4 py-2 bg-purple-600 text-white rounded shadow hover:bg-purple-700"
           >
             💳 Gerenciar Pagamentos
-          </Link>
-        </li>
-        <li>
-          <Link
-            href="/admin/referrals"
-            className="inline-block px-4 py-2 bg-purple-600 text-white rounded shadow hover:bg-purple-700"
-          >
-            📈 Gerenciar Indicações
-          </Link>
-        </li>
-        <li>
-          <Link
-            href="/admin/meetings"
-            className="inline-block px-4 py-2 bg-purple-600 text-white rounded shadow hover:bg-purple-700"
-          >
-            🗓 Gerenciar Reuniões
           </Link>
         </li>
       </ul>

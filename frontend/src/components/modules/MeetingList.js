@@ -3,9 +3,9 @@
 import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api";
 
-export default function MeetingList({ memberId }) {
+export default function MeetingList({ memberId, refresh }) {
   const { data = [], isLoading, error } = useQuery({
-    queryKey: ["meetings", memberId],
+    queryKey: ["meetings", memberId, refresh],
     queryFn: async () => {
       const res = await api.get(`/meetings/member/${memberId}`);
       return res.data;
@@ -22,15 +22,17 @@ export default function MeetingList({ memberId }) {
         <p>Nenhuma reunião encontrada.</p>
       ) : (
         data.map((meeting) => (
-          <div
-            key={meeting._id}
-            className="flex justify-between items-center border-b py-2"
-          >
+          <div key={meeting._id} className="flex justify-between border-b py-2">
             <span className="font-medium">
               {meeting.notes || "Reunião 1 a 1"}
             </span>
+
+            {/* AQUI FORMATA A DATA */}
             <span className="text-sm text-gray-500">
-              {new Date(meeting.date).toLocaleString("pt-BR")}
+              {new Date(meeting.date).toLocaleString("pt-BR", {
+                timeStyle: "medium",
+                dateStyle: "short",
+              })}
             </span>
           </div>
         ))
