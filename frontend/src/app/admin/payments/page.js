@@ -24,8 +24,13 @@ export default function AdminPaymentsPage() {
   };
 
   const updatePayment = async (id, status) => {
-    await api.patch(`/payments/${id}`, { status });
-    refetch();
+    try {
+      await api.patch(`/admin/payments/${id}/status`, { status });
+      refetch(); // atualizar a lista
+    } catch (err) {
+      console.error(err);
+      alert("Não foi possível atualizar o status.");
+    }
   };
 
   return (
@@ -79,10 +84,10 @@ export default function AdminPaymentsPage() {
                 <strong>Status:</strong>{" "}
                 <span
                   className={`px-2 py-1 rounded text-white ${pay.status === "paid"
-                      ? "bg-green-600"
-                      : pay.status === "overdue"
-                        ? "bg-red-600"
-                        : "bg-yellow-600"
+                    ? "bg-green-600"
+                    : pay.status === "overdue"
+                      ? "bg-red-600"
+                      : "bg-yellow-600"
                     }`}
                 >
                   {pay.status.toUpperCase()}

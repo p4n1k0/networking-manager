@@ -5,20 +5,32 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  if (typeof window !== "undefined") {
-    const memberToken = localStorage.getItem("memberToken");
-    const adminToken = localStorage.getItem("adminToken");
+  if (typeof window === "undefined") return config;
 
-    let tokenToUse = memberToken; // padrão: membro
+  const memberToken = localStorage.getItem("memberToken");
+  const adminToken = localStorage.getItem("adminToken");
 
-    // Rotas 100% de admin → começam com /admin
-    if (config.url.startsWith("/admin")) {
-      tokenToUse = adminToken || memberToken;
-    }
+  let tokenToUse = null;
 
-    if (tokenToUse) {
-      config.headers.Authorization = `Bearer ${tokenToUse}`;
-    }
+  // 🔹 Rotas administrativas → somente admin
+  const adminRoutes = ["/admin", "/intents", "/members", "/referrals"];
+
+  if (adminRoutes.some((r) => config.url.startsWith(r))) {
+    tokenToUse = adminToken;
+    if (!tokenToUse) console.warn("Rota administrativa sem adminToken!");
+  }
+  // 🔹 Rotas de membro → somente memberToken
+  else if (config.url.startsWith("/payments/me")) {
+    tokenToUse = memberToken;
+    if (!tokenToUse) console.warn("Rota de membro sem memberToken!");
+  }
+  // 🔹 Outras rotas → usa memberToken ou adminToken se existir
+  else {
+    tokenToUse = memberToken || adminToken;
+  }
+
+  if (tokenToUse) {
+    config.headers.Authorization = `Bearer ${tokenToUse}`;
   }
 
   return config;
