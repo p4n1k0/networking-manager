@@ -114,15 +114,24 @@ export const updateMeetingStatus = async (req, res) => {
       return res.status(404).json({ error: "Reunião não encontrada" });
     }
 
+    // 🔥 Apenas membros que participam da reunião podem alterar status
+    if (!meeting.members.map(m => m.toString()).includes(req.user.id)) {
+      return res.status(403).json({
+        error: "Você não tem permissão para alterar esta reunião."
+      });
+    }
+
     meeting.checkinStatus = status;
     await meeting.save();
 
     res.json({ message: "Status atualizado", meeting });
+
   } catch (error) {
     console.error("Erro ao atualizar status da reunião:", error);
     res.status(500).json({ error: "Erro interno do servidor" });
   }
 };
+
 
 /**
  * @desc Listar TODAS as reuniões
@@ -159,7 +168,7 @@ export const adminUpdateMeeting = async (req, res) => {
     }
 
     const allowedFields = ["date", "notes", "location", "durationMinutes"];
-    
+
     allowedFields.forEach((field) => {
       if (req.body[field] !== undefined) {
         meeting[field] = req.body[field];

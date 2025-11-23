@@ -55,7 +55,7 @@ export default function ReferralList({ memberId, type = "sent" }) {
             <div>
               <p><strong>Cliente:</strong> {r.clientName}</p>
               <p><strong>Tipo:</strong> {r.businessType}</p>
-              <p><strong>Status:</strong> 
+              <p><strong>Status:</strong>
                 <span className="capitalize ml-1">
                   {r.status.replace("_", " ")}
                 </span>
@@ -71,6 +71,7 @@ export default function ReferralList({ memberId, type = "sent" }) {
               <div className="flex flex-col gap-2">
                 <Button
                   size="sm"
+                  className="bg-green-600 hover:bg-green-700 text-white"
                   onClick={() => mutation.mutate({ id: r._id, status: "won" })}
                 >
                   Concluída
