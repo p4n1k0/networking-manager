@@ -162,3 +162,26 @@ export const getMemberById = async (req, res) => {
     res.status(500).json({ error: "Erro interno do servidor" });
   }
 };
+
+/**
+ * @desc Deletar membro por ID
+ * @route DELETE /api/members/:id
+ * @access Admin
+ */
+export const deleteMember = async (req, res) => {
+  try {
+    const memberId = req.params.id;
+
+    const member = await Member.findById(memberId);
+    if (!member) {
+      return res.status(404).json({ error: "Membro não encontrado" });
+    }
+
+    await Member.deleteOne({ _id: memberId });
+
+    res.json({ message: "Membro deletado com sucesso" });
+  } catch (error) {
+    console.error("Erro ao deletar membro:", error);
+    res.status(500).json({ error: "Erro interno do servidor" });
+  }
+};

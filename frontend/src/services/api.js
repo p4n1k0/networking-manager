@@ -13,7 +13,7 @@ api.interceptors.request.use((config) => {
   let tokenToUse = null;
 
   // 🔹 Rotas administrativas → somente admin
-  const adminRoutes = ["/admin", "/intents", "/members", "/referrals"];
+  const adminRoutes = ["/admin", "/intents", "/members"];
 
   if (adminRoutes.some((r) => config.url.startsWith(r))) {
     tokenToUse = adminToken;

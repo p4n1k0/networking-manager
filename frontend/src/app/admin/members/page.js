@@ -32,7 +32,7 @@ export default function AdminMembersPage() {
   const deleteMember = async (id) => {
     if (!confirm("Tem certeza que deseja excluir este membro?")) return;
     try {
-      await api.delete(`/members/${id}`);
+      await api.delete(`/admin/members/${id}`);
       loadMembers();
     } catch (err) {
       console.error(err);
@@ -68,7 +68,7 @@ export default function AdminMembersPage() {
                 <tr key={member._id} className="border-t">
                   <td className="p-3">{member.name}</td>
                   <td className="p-3">{member.email}</td>
-                  <td className="p-3">{member.status || "ativo"}</td>
+                  <td className="p-3">{member.status || "active"}</td>
                   <td className="p-3 flex gap-2">
                     {/* Botão excluir */}
                     <button
